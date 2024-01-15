@@ -1,0 +1,28 @@
+{
+    "name": "api",
+    "dockerComposeFile": [
+        "../../docker-compose.yml"
+    ],
+    "service": "api",
+    "shutdownAction": "none",
+    "workspaceFolder": "/pkg/api",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "workbench.colorCustomizations": {
+                    "titleBar.activeBackground": "#c83d25"
+                },
+                "editor.formatOnSave": true,
+                "php.suggest.basic": false,
+                "rest-client.decodeEscapedUnicodeCharacters": true
+            },
+            "extensions": [
+                "mhutchie.git-graph",
+                "bmewburn.vscode-intelephense-client",
+                "xdebug.php-debug",
+                "humao.rest-client",
+                "adpyke.vscode-sql-formatter"
+            ]
+        }
+    }
+}

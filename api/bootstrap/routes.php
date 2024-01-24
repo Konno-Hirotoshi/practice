@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\Route;
 | Setup The Application Router
 |--------------------------------------------------------------------------
 */
+
 Route::pattern('id', '[1-9][0-9]*');
 
 Route::middleware([
     AuthenticateMiddleware::class,
-])->group(function($router) {
+])->group(function ($router) {
     $router->get('/users', [UsersController::class, 'search']);
     $router->get('/users/show/{id}', [UsersController::class, 'show']);
     $router->post('/users/create', [UsersController::class, 'create']);

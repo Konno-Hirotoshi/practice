@@ -2,7 +2,6 @@
 
 namespace App\Service\Roles\Support;
 
-use App\Model\Users\Query as Users;
 use App\Model\Roles\Query as Roles;
 use App\Model\Permissions\Query as Permissions;
 use App\Base\BaseValidator;
@@ -17,7 +16,6 @@ class Validation extends BaseValidator
      */
     public function __construct(
         private Roles $roles,
-        private Users $users,
         private Permissions $permissions
     ) {
     }
@@ -72,48 +70,5 @@ class Validation extends BaseValidator
         }
 
         return $this;
-    }
-
-    /**
-     * バリデーションチェック: 削除IDリスト
-     */
-    public function validateDeleteIds(array $deleteIds): self
-    {
-        // 全権限ロールが含まれているか
-        $isIncludedSuperRole = $this->isIncludedSuperRole($deleteIds);
-        if ($isIncludedSuperRole) {
-            return $this->setError('deleteIds', 'super_role');
-        }
-
-        // ユーザーに割り当てられているか
-        $isAssignToUsers = $this->isAssignToUsers($deleteIds);
-        if ($isAssignToUsers) {
-            return $this->setError('deleteIds', 'role_assigned');
-        }
-
-        return $this;
-    }
-
-    /**
-     * 全権限ロールが含まれているか
-     * 
-     * @param array $roleIds
-     * @return bool
-     */
-    private function isIncludedSuperRole(array $roleIds): bool
-    {
-        return in_array(Roles::SUPER_ROLE_ID, $roleIds);
-    }
-
-    /**
-     * ユーザーに割り当てられているか
-     * 
-     * @param array $roleIds
-     * @return bool
-     */
-    private function isAssignToUsers(array $roleIds): bool
-    {
-        $assignedUserCount = $this->users->getCountByRoleId($roleIds);
-        return $assignedUserCount > 0;
     }
 }

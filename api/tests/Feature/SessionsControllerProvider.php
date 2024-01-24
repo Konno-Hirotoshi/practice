@@ -36,14 +36,14 @@ class SessionsControllerProvider
             ],
 
             '間違ったemail, 正しいpassword' => [
-                'params' => ['email' => 'invalemail', 'password' => '123'],
+                'params' => ['email' => 'invalid-email', 'password' => '123'],
                 'database' => [],
                 'responseCode' => 422,
                 'responseContent' => ['reason' => 'failure']
             ],
 
             '正しいemail, 間違ったpassword' => [
-                'params' => ['email' => '123', 'password' => 'invalemail'],
+                'params' => ['email' => '123', 'password' => 'invalid-password'],
                 'database' => [],
                 'responseCode' => 422,
                 'responseContent' => ['reason' => 'failure']
@@ -53,16 +53,12 @@ class SessionsControllerProvider
                 'params' => ['email' => 'test', 'password' => '123'],
                 'database' => [
                     'users' => [
-                        ['id' => 1, 'employee_id' => 10, 'role_id' => 1, 'password' => password_hash('123', PASSWORD_BCRYPT), 'note' => '-'],
+                        ['id' => 1, 'full_name' => 'user 1', 'email' => 'test', 'department_id' => 10, 'role_id' => 1, 'password' => password_hash('123', PASSWORD_BCRYPT), 'note' => '-'],
                     ],
-                    'employees' => [
-                        ['id' => 10, 'full_name' => 'Staff 1', 'department_id' => 1, 'email' => 'test'],
-
-                    ]
                 ],
                 'responseCode' => 200,
                 'responseContent' => [
-                    'employee_id' => 10,
+                    'user_id' => 1,
                     'permissions' => []
                 ]
             ],

@@ -62,12 +62,12 @@ class OrdersService
             ->validateBody($body)
             ->throwIfErrors();
 
-        $create = new Create(
+        $dto = new Create(
             title: $title,
             body: $body,
         );
 
-        return $this->orders->save($create);
+        return $this->orders->save($dto);
     }
 
     /**
@@ -89,14 +89,14 @@ class OrdersService
             throw new CustomException('not_editable');
         }
 
-        $edit = new Edit(
+        $dto = new Edit(
             id: $id,
             title: $title,
             body: $body,
             updatedAt: $updatedAt,
         );
 
-        $this->orders->save($edit);
+        $this->orders->save($dto);
     }
 
     /**
@@ -111,13 +111,13 @@ class OrdersService
             throw new CustomException('not_editable');
         }
 
-        $apply = new Apply(
+        $dto = new Apply(
             id: $id,
             approvalFlows: [1, 1],    // @todo
             updatedAt: $updatedAt,
         );
 
-        $this->orders->save($apply);
+        $this->orders->save($dto);
     }
 
     /**
@@ -147,7 +147,7 @@ class OrdersService
             throw new CustomException('deny_user');
         }
 
-        $approve = new Approve(
+        $dto = new Approve(
             id: $id,
             sequenceNo: $sequenceNo,
             approvalDate: time(),
@@ -155,7 +155,7 @@ class OrdersService
             updatedAt: $updatedAt,
         );
 
-        $this->orders->save($approve);
+        $this->orders->save($dto);
     }
 
     /**
@@ -185,14 +185,14 @@ class OrdersService
             throw new CustomException('deny_user');
         }
 
-        $reject = new Reject(
+        $dto = new Reject(
             id: $id,
             sequenceNo: $sequenceNo,
             approvalDate: time(),
             updatedAt: $updatedAt,
         );
 
-        $this->orders->save($reject);
+        $this->orders->save($dto);
     }
 
     /**
@@ -207,13 +207,13 @@ class OrdersService
         if (!$this->rule->isApprovalFlowInProgress($id)) {
             throw new CustomException('not_in_progress');
         }
-        
-        $cancel = new Cancel(
+
+        $dto = new Cancel(
             id: $id,
             updatedAt: $updatedAt,
         );
 
-        $this->orders->save($cancel);
+        $this->orders->save($dto);
     }
 
     /**
@@ -225,14 +225,10 @@ class OrdersService
             $deleteIds = [$deleteIds];
         }
 
-        $this->validation
-            ->validateDeleteIds($deleteIds)
-            ->throwIfErrors();
-
-        $delete = new Delete(
+        $dto = new Delete(
             deleteIds: $deleteIds,
         );
 
-        $this->orders->save($delete);
+        $this->orders->save($dto);
     }
 }

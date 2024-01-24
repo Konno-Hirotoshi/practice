@@ -2,7 +2,9 @@
 
 namespace App\Service\Roles;
 
+use App\Base\CustomException;
 use App\Base\SearchOption;
+use App\Model\Users\Query as Users;
 use App\Model\Roles\Command as Roles;
 use App\Service\Roles\Commands\Create;
 use App\Service\Roles\Commands\Delete;
@@ -19,6 +21,7 @@ class RolesService
      */
     public function __construct(
         private Roles $roles,
+        private Users $users,
         private Validation $validation,
     ) {
     }
@@ -57,13 +60,13 @@ class RolesService
             ->validatePermissionIds($permissionIds)
             ->throwIfErrors();
 
-        $create = new Create(
+        $dto = new Create(
             name: $name,
             note: $note,
             permissionIds: $permissionIds,
         );
 
-        return $this->roles->save($create);
+        return $this->roles->save($dto);
     }
 
     /**
@@ -82,7 +85,7 @@ class RolesService
             ->validatePermissionIds($permissionIds)
             ->throwIfErrors();
 
-        $edit = new Edit(
+        $dto = new Edit(
             id: $id,
             name: $name,
             note: $note,
@@ -90,7 +93,7 @@ class RolesService
             updatedAt: $updatedAt,
         );
 
-        $this->roles->save($edit);
+        $this->roles->save($dto);
     }
 
     /**
@@ -102,14 +105,45 @@ class RolesService
             $deleteIds = [$deleteIds];
         }
 
-        $this->validation
-            ->validateDeleteIds($deleteIds)
-            ->throwIfErrors();
+        // 全権限ロールが含まれているか
+        $isIncludedSuperRole = $this->isIncludedSuperRole($deleteIds);
+        if ($isIncludedSuperRole) {
+            throw new CustomException('super_role');
+        }
 
-        $delete = new Delete(
+        // ユーザーに割り当てられているか
+        $isAssignToUsers = $this->isAssignToUsers($deleteIds);
+        if ($isAssignToUsers) {
+            throw new CustomException('role_assigned');
+        }
+
+        $dto = new Delete(
             deleteIds: $deleteIds,
         );
 
-        $this->roles->save($delete);
+        $this->roles->save($dto);
+    }
+
+    /**
+     * 全権限ロールが含まれているか
+     * 
+     * @param array $roleIds
+     * @return bool
+     */
+    private function isIncludedSuperRole(array $roleIds): bool
+    {
+        return in_array(Roles::SUPER_ROLE_ID, $roleIds);
+    }
+
+    /**
+     * ユーザーに割り当てられているか
+     * 
+     * @param array $roleIds
+     * @return bool
+     */
+    private function isAssignToUsers(array $roleIds): bool
+    {
+        $assignedUserCount = $this->users->getCountByRoleId($roleIds);
+        return $assignedUserCount > 0;
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Base;
 
-use App\Service\SessionService;
 use App\Service\AuthorizationService;
+use App\Service\SessionService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as BaseServiceProvider;
 use Illuminate\Http\Request;
@@ -25,7 +25,7 @@ class AppServiceProvider extends BaseServiceProvider
             }
             app(AuthorizationService::class)->authorize($session->role_id, $request->path());
             return new User(
-                $session->employee_id,
+                $session->user_id,
                 $session->department_id,
             );
         });

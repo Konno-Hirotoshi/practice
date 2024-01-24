@@ -54,7 +54,7 @@ final class AuthenticationService
         $user = $this->users->getForAuthoricate($email);
         if ($user === null || !password_verify($password, $user->password)) {
             $this->loginHistories->createBlock($email);
-            throw new CustomException('failure');
+            throw new CustomException('failure' . ($user === Null ? 1 : 0));
         }
 
         // ログイン履歴を追加する
@@ -73,7 +73,7 @@ final class AuthenticationService
     {
         $blockCount = $this->loginHistories->getRecentBlockCount(
             email: $email,
-            date: time() - self::RATE_TIME,
+            period: self::RATE_TIME,
         );
         return $blockCount > self::RATE_LIMIT;
     }

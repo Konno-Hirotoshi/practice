@@ -14,11 +14,14 @@ return new class extends Migration
             `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`id`)
         );
-        CREATE TABLE `employees` (
+        CREATE TABLE `users` (
             `id` INT NOT NULL AUTO_INCREMENT,
             `full_name` VARCHAR(60) NOT NULL,
-            `department_id` INT NOT NULL,
             `email` VARCHAR(60) NOT NULL,
+            `department_id` INT NOT NULL,
+            `role_id` INT NOT NULL,
+            `password` VARCHAR(60) NOT NULL,
+            `note` VARCHAR(255) NOT NULL,
             `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`id`)
@@ -26,7 +29,7 @@ return new class extends Migration
     SQL;
 
     private $down = <<<SQL
-        DROP TABLE IF EXISTS `employees`;
+        DROP TABLE IF EXISTS `users`;
         DROP TABLE IF EXISTS `departments`;
     SQL;
 

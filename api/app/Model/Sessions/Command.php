@@ -20,18 +20,18 @@ class Command extends Query
      * Note: 主キー重複時に例外を投げる可能性有り (確率は極めて低いので再試行などの対策はしない)
      * 
      * @param string $key
-     * @param int $employeeId
+     * @param int $userId
      * @param int $departmentId
      * @param int $roleId
      * @param int $expiredAt
      * @return void
      */
-    public function create(string $key, int $employeeId, int $departmentId, int $roleId, int $expiredAt): void
+    public function create(string $key, int $userId, int $departmentId, int $roleId, int $expiredAt): void
     {
         DB::table('sessions')
             ->insert([
                 'key' => $key,
-                'employee_id' => $employeeId,
+                'user_id' => $userId,
                 'department_id' => $departmentId,
                 'role_id' => $roleId,
                 'expired_at' => date('Y-m-d H:i:s', $expiredAt),

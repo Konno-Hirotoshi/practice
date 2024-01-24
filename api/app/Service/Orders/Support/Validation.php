@@ -33,12 +33,4 @@ class Validation extends BaseValidator
     {
         return $this;
     }
-
-    /**
-     * バリデーションチェック: 削除IDリスト
-     */
-    public function validateDeleteIds(array $deleteIds): self
-    {
-        return $this;
-    }
 }

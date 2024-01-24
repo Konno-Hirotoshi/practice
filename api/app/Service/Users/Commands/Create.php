@@ -11,9 +11,11 @@ readonly class Create
      * コンストラクタ
      */
     public function __construct(
-        public int $employeeId,
-        public string $password,
+        public string $fullName,
+        public string $email,
+        public int $departmentId,
         public int $roleId,
+        public string $password,
         public string $note,
     ) {
     }

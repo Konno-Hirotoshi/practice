@@ -4,7 +4,7 @@ namespace App\Service\Users\Support;
 
 use App\Base\CustomException;
 use App\Base\BaseValidator;
-use App\Model\Employees\Query as Employees;
+use App\Model\Departments\Query as Departments;
 use App\Model\Users\Query as Users;
 use App\Model\Roles\Query as Roles;
 use App\Service\AuthenticationService;
@@ -20,20 +20,25 @@ class Validation extends BaseValidator
     public function __construct(
         private Users $users,
         private Roles $roles,
-        private Employees $employees,
+        private Departments $departments,
         private AuthenticationService $authenticationService,
     ) {
     }
 
     /**
-     * バリデーションチェック: 従業員ID
+     * バリデーションチェック: 部署ID
      */
-    public function validateEmployeeId(int $employeeId): self
+    public function validateDepartmentId(?int $departmentId): self
     {
-        // 従業員IDが存在するか
-        $existsEmployeeId = $this->employees->exists($employeeId);
-        if (!$existsEmployeeId) {
-            return $this->setError('employeeId', 'not-found');
+        // 未入力ならチェック対象外
+        if ($departmentId === null) {
+            return $this;
+        }
+
+        // 部署IDが存在するか
+        $existsDepartmentId = $this->departments->exists($departmentId);
+        if (!$existsDepartmentId) {
+            return $this->setError('departmentId', 'not_found');
         };
 
         return $this;
@@ -52,7 +57,7 @@ class Validation extends BaseValidator
         // 権限IDが存在するか
         $existsRoleId = $this->roles->exists($roleId);
         if (!$existsRoleId) {
-            return $this->setError('roleId', 'not-found');
+            return $this->setError('roleId', 'not_found');
         }
 
         return $this;
@@ -86,12 +91,14 @@ class Validation extends BaseValidator
             $email = $this->users->getEmailById($id);
             $this->authenticationService->authenticate($email, $password);
         } catch (CustomException $e) {
-            return match ($e->errors()['reason']) {
-                'record_not_found' => $this->setError('current_password', 'not-equal'),
-                'locked' => $this->setError('current_password', 'locked'),
-                'failure' => $this->setError('current_password', 'not-equal'),
-            };
+            return $this->setError('current_password', match ($e->errors()['reason']) {
+                'record_not_found' => 'not_equal',
+                'empty' => 'not_equal',
+                'locked' => 'locked',
+                'failure' => 'not_equal',
+            });
         }
+
         return $this;
     }
 
@@ -117,14 +124,6 @@ class Validation extends BaseValidator
         if ($note === null) {
             return $this;
         }
-        return $this;
-    }
-
-    /**
-     * バリデーションチェック: 削除IDリスト
-     */
-    public function validateDeleteIds(array $deleteIds): self
-    {
         return $this;
     }
 

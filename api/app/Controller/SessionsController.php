@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Model\Roles\Query as Roles;
 use App\Service\AuthenticationService;
+use App\Service\AuthorizationService;
 use App\Service\SessionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,8 +19,8 @@ class SessionsController
      */
     public function __construct(
         private Request $request,
-        private Roles $roles,
         private AuthenticationService $authenticationService,
+        private AuthorizationService $authorizationService,
         private SessionService $sessionService,
     ) {
         $sessionKey = $this->request->cookie('key');
@@ -42,16 +43,16 @@ class SessionsController
         $user = $this->authenticationService->authenticate(...$validatedRequest);
 
         // 03. Return Response
-        $body = [
-            'employee_id' => $user->employee_id,
-            'permissions' => $this->roles->getFrontendPermission($user->role_id),
-        ];
-
         $sessionKey = $this->sessionService->create(
-            employeeId: $user->employee_id,
+            userId: $user->id,
             departmentId: $user->department_id,
             roleId: $user->role_id,
         );
+
+        $body = [
+            'user_id' => $user->id,
+            'permissions' => $this->authorizationService->getFrontendPaths($user->role_id),
+        ];
 
         return (new JsonResponse($body))->withCookie('key', $sessionKey);
     }

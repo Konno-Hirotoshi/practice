@@ -12,8 +12,11 @@ readonly class Edit
      */
     public function __construct(
         public int $id,
-        public ?string $password,
+        public ?string $fullName,
+        public ?string $email,
+        public ?int $departmentId,
         public ?int $roleId,
+        public ?string $password,
         public ?string $note,
         public ?string $updatedAt,
     ) {

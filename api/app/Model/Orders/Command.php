@@ -46,6 +46,8 @@ class Command extends Query
             $orderId = DB::table('orders')->insertGetId([
                 'title' => $dto->title,
                 'body' => $dto->body,
+                'approval_status' => 0,
+                'owner_user_id' => 0,
             ]);
             return $orderId;
         });
@@ -93,6 +95,7 @@ class Command extends Query
                 'order_id' => $dto->id,
                 'sequence_no' => $sequenceNo,
                 'user_id' => $userId,
+                'approval_status' => 0,
             ], $dto->approvalFlows, range(1, count($dto->approvalFlows)));
             DB::table('order_approval_flows')
                 ->insert($approvalFlows);

@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Model\Roles\Query as Roles;
+use App\Model\Permissions\Query as Permissions;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -10,12 +11,12 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  */
 final class AuthorizationService
 {
-
     /**
      * コンストラクタ
      */
     public function __construct(
         private Roles $roles,
+        private Permissions $permissions,
     ) {
     }
 
@@ -34,12 +35,30 @@ final class AuthorizationService
         $path = explode('/', $path);
         $controller = $path[0];
         $action = $path[1] ?? 'index';
-        $serverPermissions = $this->roles->getBackendPermission($roleId);
-        
-        if (isset($serverPermissions[$controller]) && in_array($action, $serverPermissions[$controller])) {
+        $allowedPaths = $this->getBackendPaths($roleId);
+
+        if (isset($allowedPaths[$controller]) && in_array($action, $allowedPaths[$controller])) {
             return;
         }
 
         throw new AccessDeniedHttpException();
+    }
+
+    /**
+     * 指定された役割が利用可能なバックエンドのパスの一覧を取得する
+     */
+    public function getFrontendPaths(int $roleId): array
+    {
+        $permissionIds = $this->roles->getPermissions($roleId);
+        return $this->permissions->getFrontendPaths($permissionIds);
+    }
+
+    /**
+     * 指定された役割が利用可能なフロントエンドのパスの一覧を取得する
+     */
+    private function getBackendPaths(int $roleId): array
+    {
+        $permissionIds = $this->roles->getPermissions($roleId);
+        return $this->permissions->getBackendPaths($permissionIds);
     }
 }

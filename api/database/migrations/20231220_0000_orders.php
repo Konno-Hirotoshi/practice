@@ -11,11 +11,11 @@ return new class extends Migration
             `title` VARCHAR(60) NOT NULL,
             `body` VARCHAR(255) NOT NULL DEFAULT '',
             `approval_status` SMALLINT NOT NULL,
-            `owner_employee_id` INT NOT NULL,
+            `owner_user_id` INT NOT NULL,
             `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`id`)
-        ) ;
+        );
         CREATE TABLE `order_approval_flows` (
             `id` INT NOT NULL AUTO_INCREMENT,
             `order_id` INT NOT NULL,

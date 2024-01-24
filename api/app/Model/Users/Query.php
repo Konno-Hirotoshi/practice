@@ -22,7 +22,9 @@ class Query
         $results = DB::table('users')
             ->select([
                 'id',
-                'employee_id',
+                'full_name',
+                'email',
+                'department_id',
                 'role_id',
                 'note',
             ])
@@ -42,7 +44,9 @@ class Query
         $user = DB::table('users')
             ->where('id', $id)
             ->first([
-                'employee_id',
+                'full_name',
+                'email',
+                'department_id',
                 'role_id',
                 'note',
                 'updated_at',
@@ -64,13 +68,12 @@ class Query
     public function getForAuthoricate(string $email): ?object
     {
         $user = DB::table('users')
-            ->leftJoin('employees', 'employees.id', '=', 'users.employee_id')
-            ->where('employees.email', $email)
+            ->where('email', $email)
             ->first([
-                'employees.id AS employee_id',
-                'employees.department_id',
-                'users.role_id',
-                'users.password',
+                'id',
+                'department_id',
+                'role_id',
+                'password',
             ]);
         return $user;
     }
@@ -84,8 +87,7 @@ class Query
     public function getEmailById(int $id): string
     {
         $user = DB::table('users')
-            ->leftJoin('employees', 'employees.id', '=', 'users.employee_id')
-            ->where('users.id', $id)
+            ->where('id', $id)
             ->first('email');
 
         if ($user === null) {

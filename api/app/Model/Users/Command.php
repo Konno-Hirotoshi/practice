@@ -38,9 +38,11 @@ class Command extends Query
         return DB::transaction(function () use ($dto) {
             // 利用者テーブル
             $userId = DB::table('users')->insertGetId([
-                'employee_id' => $dto->employeeId,
-                'password' => password_hash($dto->password, PASSWORD_BCRYPT),
+                'full_name' => $dto->fullName,
+                'email' => $dto->email,
+                'department_id' => $dto->departmentId,
                 'role_id' => $dto->roleId,
+                'password' => password_hash($dto->password, PASSWORD_BCRYPT),
                 'note' => $dto->note,
             ]);
             return $userId;
@@ -60,8 +62,11 @@ class Command extends Query
 
             // 利用者テーブル
             DB::table('users')->where('id', $dto->id)->update(array_filter([
-                'password' => $dto->password ? password_hash($dto->password, PASSWORD_BCRYPT) : null,
+                'full_name' => $dto->fullName,
+                'email' => $dto->email,
+                'department_id' => $dto->departmentId,
                 'role_id' => $dto->roleId,
+                'password' => $dto->password ? password_hash($dto->password, PASSWORD_BCRYPT) : null,
                 'note' => $dto->note,
                 'updated_at' => new Expression('CURRENT_TIMESTAMP'),
             ], fn ($value) => isset($value)));

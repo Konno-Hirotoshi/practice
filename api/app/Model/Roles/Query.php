@@ -15,7 +15,7 @@ class Query
      * 全権限ロールID
      */
     public const SUPER_ROLE_ID = 1;
-    
+
     /**
      * 検索する
      *
@@ -67,39 +67,18 @@ class Query
     }
 
     /**
-     * 役割に割り当てられたバックエンドパーミッションを取得する
+     * 役割に割り当てられた権限を取得する
      * 
      * @param int $id
      * @return array
      */
-    public function getBackendPermission(int $id): array
+    public function getPermissions(int $id): array
     {
-        $permissions = DB::table('roles_permissions as rp')
-            ->join('permissions as p', 'p.id', '=', 'rp.permission_id')
+        $permissions = DB::table('roles_permissions')
             ->where('role_id', $id)
-            ->get(['p.backend']);
+            ->get(['permission_id']);
 
-        return $permissions->reduce(function ($carry, $permission) {
-            return array_merge_recursive($carry, json_decode($permission->backend, true));
-        }, []);
-    }
-
-    /**
-     * 役割に割り当てられたフロントエンドパーミッションを取得する
-     * 
-     * @param int $id
-     * @return array
-     */
-    public function getFrontendPermission(int $id): array
-    {
-        $permissions = DB::table('roles_permissions as rp')
-            ->join('permissions as p', 'p.id', '=', 'rp.permission_id')
-            ->where('role_id', $id)
-            ->get(['p.frontend']);
-
-        return $permissions->reduce(function ($carry, $permission) {
-            return array_merge_recursive($carry, json_decode($permission->frontend, true));
-        }, []);
+        return $permissions->pluck('permission_id')->toArray();
     }
 
     /**

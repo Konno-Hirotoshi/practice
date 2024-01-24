@@ -62,9 +62,11 @@ class UsersController
     {
         // 01. Validate Request
         $validatedRequest = $this->request->validate([
-            'employeeId' => ['required', 'integer'],
-            'password' => ['string', 'min:8', 'max:100'],
+            'fullName' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'string', 'max:100'],
+            'departmentId' => ['required', 'integer'],
             'roleId' => ['required', 'integer'],
+            'password' => ['string', 'min:8', 'max:100'],
             'note' => ['string', 'max:200'],
         ]);
 
@@ -82,8 +84,11 @@ class UsersController
     {
         // 01. Validate Request
         $validatedRequest = $this->request->validate([
-            'password' => ['filled', 'min:8', 'max:100'],
+            'fullName' => ['filled', 'string', 'max:30'],
+            'email' => ['filled', 'string', 'max:100'],
+            'departmentId' => ['filled', 'integer'],
             'roleId' => ['filled', 'integer'],
+            'password' => ['filled', 'min:8', 'max:100'],
             'note' => ['string', 'max:200'],
             'updatedAt' => ['string', 'min:19', 'max:19'],
         ]);

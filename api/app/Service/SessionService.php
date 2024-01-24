@@ -27,16 +27,16 @@ class SessionService
     /**
      * セッションを作成する
      * 
-     * @param int $employeeId
+     * @param int $userId
      * @param int $roleId
      * @return string
      */
-    public function create(int $employeeId, int $departmentId, int $roleId): string
+    public function create(int $userId, int $departmentId, int $roleId): string
     {
         $sessionKey = session_create_id();
         $this->sessions->create(
             key: $sessionKey,
-            employeeId: $employeeId,
+            userId: $userId,
             departmentId: $departmentId,
             roleId: $roleId,
             expiredAt: $this->getExpiredAt(),

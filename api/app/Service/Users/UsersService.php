@@ -31,6 +31,7 @@ class UsersService
     {
         $option = SearchOption::create($search, $sort, $page, $perPage, [
             'id' => 'value',
+            'full_name' => 'like',
             'email' => 'like',
             'tags' => function ($key, $value, $query) {
                 return $query;
@@ -52,26 +53,30 @@ class UsersService
      * 新規作成
      */
     public function create(
-        int $employeeId,
-        string $password = 'default@',
+        string $fullName,
+        string $email,
+        int $departmentId,
         int $roleId = 0,
+        string $password = 'default@',
         string $note = '',
     ): int {
         $this->validation
-            ->validateEmployeeId($employeeId)
-            ->validatePassword($password)
+            ->validateDepartmentId($departmentId)
             ->validateRoleId($roleId)
+            ->validatePassword($password)
             ->validateNote($note)
             ->throwIfErrors();
 
-        $create = new Create(
-            employeeId: $employeeId,
-            password: $password,
+        $dto = new Create(
+            fullName: $fullName,
+            email: $email,
+            departmentId: $departmentId,
             roleId: $roleId,
+            password: $password,
             note: $note,
         );
 
-        return $this->users->save($create);
+        return $this->users->save($dto);
     }
 
     /**
@@ -79,26 +84,33 @@ class UsersService
      */
     public function edit(
         int $id,
+        ?string $fullName = null,
+        ?string $email = null,
+        ?int $departmentId = null,
         ?int $roleId = null,
         ?string $password = null,
         ?string $note = null,
         ?string $updatedAt = null,
     ) {
         $this->validation
-            ->validatePassword($password)
+            ->validateDepartmentId($departmentId)
             ->validateRoleId($roleId)
+            ->validatePassword($password)
             ->validateNote($note)
             ->throwIfErrors();
 
-        $edit = new Edit(
+        $dto = new Edit(
             id: $id,
+            fullName: $fullName,
+            email: $email,
+            departmentId: $departmentId,
             roleId: $roleId,
             password: $password,
             note: $note,
             updatedAt: $updatedAt,
         );
 
-        $this->users->save($edit);
+        $this->users->save($dto);
     }
 
     /**
@@ -116,12 +128,12 @@ class UsersService
             ->validateRetypePassword($retypePassword, $newPassword)
             ->throwIfErrors();
 
-        $editPassword = new EditPassword(
+        $dto = new EditPassword(
             id: $id,
             password: $newPassword,
         );
 
-        $this->users->save($editPassword);
+        $this->users->save($dto);
     }
 
     /**
@@ -133,14 +145,10 @@ class UsersService
             $deleteIds = [$deleteIds];
         }
 
-        $this->validation
-            ->validateDeleteIds($deleteIds)
-            ->throwIfErrors();
-
-        $delete = new Delete(
+        $dto = new Delete(
             deleteIds: $deleteIds,
         );
 
-        $this->users->save($delete);
+        $this->users->save($dto);
     }
 }

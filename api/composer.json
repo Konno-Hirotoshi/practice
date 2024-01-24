@@ -25,19 +25,13 @@
         ],
         "test": "phpunit tests/ --colors --testdox --",
         "testng": "phpunit tests/ --colors=always --testdox | grep -v ✔ --",
+        "migrate": "@php artisan migrate --seed",
         "serve": [
             "Composer\\Config::disableProcessTimeout",
             "@php -S 0.0.0.0:8000 -t public"
         ],
-        "migrate": "@php artisan migrate --seed",
-        "route:cache": "@php artisan route:cache",
-        "route:clear": "@php artisan route:clear",
-        "config:cache": "@php artisan config:cache",
-        "config:clear": "@php artisan config:clear",
-        "post-install-cmd": [
-            "mkdir -p bootstrap/cache logs"
-        ],
         "post-autoload-dump": [
+            "mkdir -p bootstrap/cache logs",
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump"
         ]
     },

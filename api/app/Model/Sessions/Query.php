@@ -20,7 +20,7 @@ class Query
         return DB::table('sessions')
             ->where('key', $key)
             ->first([
-                'employee_id',
+                'user_id',
                 'department_id',
                 'role_id',
                 'expired_at',

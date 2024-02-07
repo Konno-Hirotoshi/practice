@@ -3,6 +3,9 @@ RUN apt update \
     && apt install -y git zip unzip \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
+COPY startup.sh /startup.sh
+RUN chmod 744 /startup.sh
+
 WORKDIR /pkg/web
 
-CMD ["/usr/local/bin/npm", "start"]
+CMD ["/startup.sh"]

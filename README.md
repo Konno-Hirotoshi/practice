@@ -1,4 +1,4 @@
-## 🔰 Setup (Require Windows 10 22H2 or later)
+## 🔰 Setup
 初回セットアップ手順を以下に示す。
 
 1. 「.all-setup/windows.bat」を実行する (以下のセットアップが自動的に実行される)

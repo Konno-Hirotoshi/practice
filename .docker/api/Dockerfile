@@ -7,6 +7,9 @@ RUN apt update \
     && docker-php-ext-enable xdebug
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
+COPY startup.sh /startup.sh
+RUN chmod 744 /startup.sh
+
 WORKDIR /pkg/api
 
-CMD ["/usr/local/bin/composer", "start"]
+CMD ["/startup.sh"]

@@ -90,19 +90,17 @@ class SessionService
      * ・有効期限(設定値: 30分)を過ぎているセッションも一緒に削除する
      * 
      * @param ?string $sessionKey
-     * @return self
+     * @return void
      */
-    public function delete(?string $sessionKey): self
+    public function delete(?string $sessionKey): void
     {
         if ($sessionKey === null) {
-            return $this;
+            return;
         }
         $this->sessions->delete(
             key: $sessionKey,
             now: $this->getNow(),
         );
-
-        return $this;
     }
 
     /**

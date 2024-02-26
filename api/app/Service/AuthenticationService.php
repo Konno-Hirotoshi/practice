@@ -54,7 +54,7 @@ final class AuthenticationService
         $user = $this->users->getForAuthoricate($email);
         if ($user === null || !password_verify($password, $user->password)) {
             $this->loginHistories->createBlock($email);
-            throw new CustomException('failure' . ($user === Null ? 1 : 0));
+            throw new CustomException('failure');
         }
 
         // ログイン履歴を追加する

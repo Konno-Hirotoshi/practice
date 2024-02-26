@@ -62,9 +62,6 @@ class RolesControllerProvider
             'roles' => [
                 ['id' => 1, 'name' => 'Administrator', 'note' => ''],
             ],
-            'permissions' => [
-                ['id' => 1, 'label' => 'p1', 'backend' => '{}', 'frontend' => '{}'],
-            ],
         ];
         return [
             '作成成功' => [
@@ -176,7 +173,7 @@ class RolesControllerProvider
                 'database' => $db,
                 'responseCode' => 422,
                 'responseContent' => [
-                    'deleteIds' => 'super_role',
+                    'reason' => 'super_role',
                 ],
                 'afterDatabase' => [
                     'roles' => [

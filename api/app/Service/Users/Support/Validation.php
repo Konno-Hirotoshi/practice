@@ -26,6 +26,30 @@ class Validation extends BaseValidator
     }
 
     /**
+     * バリデーションチェック: 名称
+     */
+    public function validateFullName(?string $fullName): self
+    {
+        // 未入力ならチェック対象外
+        if ($fullName === null) {
+            return $this;
+        }
+        return $this;
+    }
+
+    /**
+     * バリデーションチェック: メールアドレス
+     */
+    public function validateEmail(?string $email): self
+    {
+        // 未入力ならチェック対象外
+        if ($email === null) {
+            return $this;
+        }
+        return $this;
+    }
+
+    /**
      * バリデーションチェック: 部署ID
      */
     public function validateDepartmentId(?int $departmentId): self

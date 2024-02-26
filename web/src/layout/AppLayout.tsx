@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { NavLink } from 'react-router-dom';
-import { useSession } from 'base/app'
-import useLocalStorage from 'base/localStorage';
+import { useSession } from '@/base/app'
+import useLocalStorage from '@/base/localStorage';
 
 /**
  * ナビゲーションメニュー項目
@@ -38,7 +38,7 @@ const NavPanel = memo(function NavPanel() {
 
     // Note: ログアウトはaタグ (index.htmlをリロードするため)
     return (
-        <nav className={sidebar ? 'fixed' : null}>
+        <nav className={sidebar ? 'fixed' : undefined}>
             <span className="navicon" onClick={() => setSidebar(!sidebar)}>≡</span>
             <ul className="nav1st">
                 {menuList.map(({ path, label }) => <li key={path}>
@@ -66,7 +66,7 @@ const NavPanel = memo(function NavPanel() {
 /**
  * アプリケーション共通レイアウト
  */
-export default function AppLayout({ children }) {
+export default function AppLayout({ children }: any):any {
     return (
         <>
             <NavPanel />
@@ -75,4 +75,4 @@ export default function AppLayout({ children }) {
             </main>
         </>
     );
-};
+}

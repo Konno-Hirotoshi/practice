@@ -2,9 +2,10 @@
 import { createContext, useContext } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import useLocalStorage from './localStorage'
+import "bootstrap/dist/css/bootstrap.min.css";
 import 'resources/common.css';
 
-const SessionContext = createContext();
+const SessionContext = createContext(null);
 
 /**
  * Session context hook

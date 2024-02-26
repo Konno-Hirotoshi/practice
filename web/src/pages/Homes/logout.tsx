@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useSession } from 'base/app';
+import { useSession } from '@/base/app';
 import { api } from 'api';
 
 /**

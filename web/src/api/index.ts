@@ -18,7 +18,7 @@ export const api = {
     // ログアウト
     logout: () => new Promise((resolve, reject) => {
         setTimeout(() => {
-            resolve();
+            resolve(null);
         }, 300 + Math.random() * 1000);
     }),
 

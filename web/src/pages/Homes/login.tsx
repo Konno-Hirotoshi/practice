@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSession } from 'base/app';
+import { useSession } from '@/base/app';
 import { api } from 'api';
 
 /**
@@ -25,7 +25,7 @@ export default function HomeLogin() {
     // ログイン処理
     const onLogin = () => {
         setInProgress(true);
-        api.login(id, password).then((response) => {
+        api.login(id, password).then((response: any) => {
             // セッション保存
             session.setIdentity(response.identity);
             session.setPermission(response.permission);

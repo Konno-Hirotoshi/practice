@@ -3,10 +3,10 @@
 namespace App\Model\Users;
 
 use App\Base\CustomException;
-use App\Service\Users\Commands\Create;
-use App\Service\Users\Commands\Delete;
-use App\Service\Users\Commands\Edit;
-use App\Service\Users\Commands\EditPassword;
+use App\Service\Users\Commands\DeleteCommand;
+use App\Service\Users\Commands\EditCommand;
+use App\Service\Users\Commands\EditPasswordCommand;
+use App\Service\Users\Entity\NewUser;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
@@ -21,10 +21,10 @@ class Command extends Query
     public function save(object $dto)
     {
         return match (true) {
-            $dto instanceof Create => $this->Create($dto),
-            $dto instanceof Edit => $this->Edit($dto),
-            $dto instanceof EditPassword => $this->editPassword($dto),
-            $dto instanceof Delete => $this->Delete($dto),
+            $dto instanceof NewUser => $this->Create($dto),
+            $dto instanceof EditCommand => $this->Edit($dto),
+            $dto instanceof EditPasswordCommand => $this->editPassword($dto),
+            $dto instanceof DeleteCommand => $this->Delete($dto),
         };
     }
 
@@ -33,7 +33,7 @@ class Command extends Query
      * 
      * @return int 作成された利用者のID
      */
-    private function create(Create $dto): int
+    private function create(NewUser $dto): int
     {
         return DB::transaction(function () use ($dto) {
             // 利用者テーブル
@@ -54,7 +54,7 @@ class Command extends Query
      * 
      * @return void
      */
-    private function edit(Edit $dto): void
+    private function edit(EditCommand $dto): void
     {
         DB::transaction(function () use ($dto) {
             // ロック取得
@@ -78,7 +78,7 @@ class Command extends Query
      * 
      * @return void
      */
-    private function editPassword(EditPassword $dto): void
+    private function editPassword(EditPasswordCommand $dto): void
     {
         DB::transaction(function () use ($dto) {
             // 利用者テーブル
@@ -94,7 +94,7 @@ class Command extends Query
      * 
      * @return void
      */
-    private function delete(Delete $dto): void
+    private function delete(DeleteCommand $dto): void
     {
         // 利用者テーブル
         DB::table('users')

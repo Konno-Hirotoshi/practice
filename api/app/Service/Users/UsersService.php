@@ -4,10 +4,10 @@ namespace App\Service\Users;
 
 use App\Base\SearchOption;
 use App\Model\Users\Command as Users;
-use App\Service\Users\Commands\Create;
-use App\Service\Users\Commands\Delete;
-use App\Service\Users\Commands\Edit;
-use App\Service\Users\Commands\EditPassword;
+use App\Service\Users\Commands\DeleteCommand;
+use App\Service\Users\Commands\EditCommand;
+use App\Service\Users\Commands\EditPasswordCommand;
+use App\Service\Users\Entity\NewUser;
 use App\Service\Users\Support\Validation;
 
 /**
@@ -60,23 +60,16 @@ class UsersService
         string $password = 'default@',
         string $note = '',
     ): int {
-        $this->validation
-            ->validateDepartmentId($departmentId)
-            ->validateRoleId($roleId)
-            ->validatePassword($password)
-            ->validateNote($note)
-            ->throwIfErrors();
-
-        $dto = new Create(
+        $user = new NewUser(
             fullName: $fullName,
             email: $email,
             departmentId: $departmentId,
             roleId: $roleId,
             password: $password,
             note: $note,
+            validation: $this->validation,
         );
-
-        return $this->users->save($dto);
+        return $this->users->save($user);
     }
 
     /**
@@ -92,14 +85,7 @@ class UsersService
         ?string $note = null,
         ?string $updatedAt = null,
     ) {
-        $this->validation
-            ->validateDepartmentId($departmentId)
-            ->validateRoleId($roleId)
-            ->validatePassword($password)
-            ->validateNote($note)
-            ->throwIfErrors();
-
-        $dto = new Edit(
+        $dto = new EditCommand(
             id: $id,
             fullName: $fullName,
             email: $email,
@@ -108,8 +94,8 @@ class UsersService
             password: $password,
             note: $note,
             updatedAt: $updatedAt,
+            validation: $this->validation,
         );
-
         $this->users->save($dto);
     }
 
@@ -122,17 +108,13 @@ class UsersService
         string $newPassword,
         string $retypePassword,
     ): void {
-        $this->validation
-            ->validateCurrentPassword($currentPassword, $id)
-            ->validatePassword($newPassword)
-            ->validateRetypePassword($retypePassword, $newPassword)
-            ->throwIfErrors();
-
-        $dto = new EditPassword(
+        $dto = new EditPasswordCommand(
             id: $id,
-            password: $newPassword,
+            currentPassword: $currentPassword,
+            newPassword: $newPassword,
+            retypePassword: $retypePassword,
+            validation: $this->validation,
         );
-
         $this->users->save($dto);
     }
 
@@ -141,11 +123,7 @@ class UsersService
      */
     public function delete(int|array $deleteIds)
     {
-        if (!is_array($deleteIds)) {
-            $deleteIds = [$deleteIds];
-        }
-
-        $dto = new Delete(
+        $dto = new DeleteCommand(
             deleteIds: $deleteIds,
         );
 

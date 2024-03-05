@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use App\Model\Roles\Query as Roles;
-use App\Model\Permissions\Query as Permissions;
+use App\Storage\Roles\Query as Roles;
+use App\Storage\Permissions\Query as Permissions;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**

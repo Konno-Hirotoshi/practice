@@ -3,7 +3,7 @@
 namespace App\Service\Orders\Support;
 
 use App\Base\BaseValidator;
-use App\Model\Orders\Query as Orders;
+use App\Storage\Orders\Query as Orders;
 
 /**
  * 取引 - ビジネスルール
@@ -28,7 +28,7 @@ class BusinessRule extends BaseValidator
             if ($row->approval_status != Orders::APPROVAL_STATUS_NONE) {
                 continue;
             }
-            $row->isFinal = ($index +1 === count($approvalFlows));
+            $row->isFinal = ($index + 1 === count($approvalFlows));
             return $row;
         }
         return null;

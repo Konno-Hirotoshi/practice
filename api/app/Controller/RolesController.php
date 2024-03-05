@@ -2,7 +2,12 @@
 
 namespace App\Controller;
 
-use App\Service\Roles\RolesService;
+use App\Domain\Roles\Role;
+use App\Domain\Roles\UseCase\Create;
+use App\Domain\Roles\UseCase\Delete;
+use App\Domain\Roles\UseCase\Edit;
+use App\Service\RolesService;
+use App\Storage\Roles\Command;
 use Illuminate\Http\Request;
 
 /**
@@ -16,6 +21,7 @@ class RolesController
     public function __construct(
         private Request $request,
         private RolesService $rolesService,
+        private Command $roles,
     ) {
     }
 
@@ -58,7 +64,7 @@ class RolesController
     /**
      * 新規作成
      */
-    public function create()
+    public function create(Create $create)
     {
         // 01. Validate Request
         $validatedRequest = $this->request->validate([
@@ -69,7 +75,11 @@ class RolesController
         ]);
 
         // 02. Invoke Use Case
-        $roleId = $this->rolesService->create(...$validatedRequest);
+        $role = new Role(...$validatedRequest);
+        $roleId = $role->save(
+            validator: $create,
+            storage: $this->roles,
+        );
 
         // 03. Return Response
         return ['id' => $roleId];
@@ -78,7 +88,7 @@ class RolesController
     /**
      * 編集
      */
-    public function edit(int $id)
+    public function edit(int $id, Edit $edit)
     {
         // 01. Validate Request
         $validatedRequest = $this->request->validate([
@@ -90,7 +100,11 @@ class RolesController
         ]);
 
         // 02. Invoke Use Case
-        $this->rolesService->edit($id, ...$validatedRequest);
+        $role = new Role(...$validatedRequest, id: $id);
+        $roleId = $role->save(
+            validator: $edit,
+            storage: $this->roles,
+        );
 
         // 03. Return Response
         return ['status' => 'succeed'];
@@ -99,13 +113,17 @@ class RolesController
     /**
      * 削除
      */
-    public function delete(int $id)
+    public function delete(int $id, Delete $delete)
     {
         // 01. Validate Request
         // (NOP)
 
         // 02. Invoke Use Case
-        $this->rolesService->delete($id);
+        $role = new Role(id: $id);
+        $roleId = $role->save(
+            validator: $delete,
+            storage: $this->roles,
+        );
 
         // 03. Return Response
         return ['status' => 'succeed'];

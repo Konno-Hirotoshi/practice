@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Model\Roles\Query as Roles;
+use App\Storage\Roles\Query as Roles;
 use App\Service\AuthenticationService;
 use App\Service\AuthorizationService;
 use App\Service\SessionService;

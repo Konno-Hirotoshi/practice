@@ -4,7 +4,7 @@ namespace App\Service\Orders;
 
 use App\Base\CustomException;
 use App\Base\SearchOption;
-use App\Model\Orders\Command as Orders;
+use App\Storage\Orders\Command as Orders;
 use App\Service\Orders\Commands\Approve;
 use App\Service\Orders\Commands\Cancel;
 use App\Service\Orders\Commands\Create;

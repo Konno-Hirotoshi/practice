@@ -22,6 +22,7 @@ Route::middleware([
     $router->get('/users/show/{id}', [UsersController::class, 'show']);
     $router->post('/users/create', [UsersController::class, 'create']);
     $router->post('/users/edit/{id}', [UsersController::class, 'edit']);
+    $router->post('/users/edit-password/{id}', [UsersController::class, 'editPassword']);
     $router->post('/users/delete/{id}', [UsersController::class, 'delete']);
 
     $router->get('/roles', [RolesController::class, 'search']);

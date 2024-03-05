@@ -3,8 +3,8 @@
 namespace App\Service;
 
 use App\Base\CustomException;
-use App\Model\LoginHistories\Command as LoginHistories;
-use App\Model\Users\Query as Users;
+use App\Storage\LoginHistories\Command as LoginHistories;
+use App\Storage\Users\Query as Users;
 
 /**
  * 認証サービス

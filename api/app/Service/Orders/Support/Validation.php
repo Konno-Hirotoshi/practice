@@ -3,7 +3,7 @@
 namespace App\Service\Orders\Support;
 
 use App\Base\BaseValidator;
-use App\Model\Orders\Query as Orders;
+use App\Storage\Orders\Query as Orders;
 
 /**
  * 取引バリデーション

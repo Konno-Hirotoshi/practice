@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Model\Sessions\Command as Sessions;
+use App\Storage\Sessions\Command as Sessions;
 
 /**
  * セッションサービス

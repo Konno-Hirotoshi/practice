@@ -13,7 +13,7 @@ class Command extends Query
      * 認証成功レコード作成
      * 
      * @param string $email
-     * @param int|null $date
+     * @param ?int $date
      * @return void
      */
     public function createPass(string $email, int $date = null): void
@@ -29,7 +29,7 @@ class Command extends Query
      * 認証失敗レコード作成
      * 
      * @param string $email
-     * @param int|null $date
+     * @param ?int $date
      * @return void
      */
     public function createBlock(string $email, int $date = null): void
@@ -45,7 +45,7 @@ class Command extends Query
      * 認証拒否レコード作成
      * 
      * @param string $email
-     * @param int|null $date
+     * @param ?int $date
      * @return void
      */
     public function createDeny(string $email, int $date = null): void

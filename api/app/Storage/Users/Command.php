@@ -5,10 +5,10 @@ namespace App\Storage\Users;
 use App\Base\CustomException;
 use App\Domain\Users\User;
 use App\Domain\Users\Interface\Storage;
-use App\Domain\Users\UseCase\Create;
-use App\Domain\Users\UseCase\Delete;
-use App\Domain\Users\UseCase\Edit;
-use App\Domain\Users\UseCase\EditPassword;
+use App\Domain\Users\Validator\Create;
+use App\Domain\Users\Validator\Delete;
+use App\Domain\Users\Validator\Edit;
+use App\Domain\Users\Validator\EditPassword;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
@@ -20,9 +20,9 @@ class Command extends Query implements Storage
     /**
      * 引数のオブジェクトをストレージへ保存する
      */
-    public function save($type, User $user)
+    public function save(User $user, string $context)
     {
-        return match ($type) {
+        return match ($context) {
             Create::class => $this->create($user),
             Edit::class => $this->edit($user),
             EditPassword::class => $this->editPassword($user),
@@ -60,16 +60,16 @@ class Command extends Query implements Storage
     {
         DB::transaction(function () use ($user) {
             // ロック取得
-            $this->lockForUpdate($user->id, $user->updatedAt);
+            $this->lockForUpdate($user);
 
             // 利用者テーブル
             DB::table('users')->where('id', $user->id)->update(array_filter([
-                'full_name' => $user->fullName,
-                'email' => $user->email,
-                'department_id' => $user->departmentId,
-                'role_id' => $user->roleId,
-                'password' => $user->password ? password_hash($user->password, PASSWORD_BCRYPT) : null,
-                'note' => $user->note,
+                'full_name' => $user->fullName ?? null,
+                'email' => $user->email ?? null,
+                'department_id' => $user->departmentId ?? null,
+                'role_id' => $user->roleId ?? null,
+                'password' => isset($user->password) ? password_hash($user->password, PASSWORD_BCRYPT) : null,
+                'note' => $user->note ?? null,
                 'updated_at' => new Expression('CURRENT_TIMESTAMP'),
             ], fn ($value) => isset($value)));
         });
@@ -107,22 +107,21 @@ class Command extends Query implements Storage
     /**
      * 更新対象のロックを取得する
      * 
-     * @param int $id
-     * @param string|null $updatedAt
+     * @param User $user
      * @return void
      */
-    private function lockForUpdate(int $id, ?string $updatedAt = null): void
+    private function lockForUpdate(User $user): void
     {
         $row = DB::table('users')
             ->lockForUpdate()
-            ->where('id', $id)
+            ->where('id', $user->id)
             ->first(['updated_at']);
 
         if ($row === null) {
             throw new CustomException('record_not_found');
         }
 
-        if ($updatedAt !== null && $updatedAt !== $row->updated_at) {
+        if (isset($user->updatedAt) && $user->updatedAt !== $row->updated_at) {
             throw new CustomException('conflict');
         }
     }

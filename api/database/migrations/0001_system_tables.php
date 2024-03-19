@@ -38,7 +38,6 @@ return new class extends Migration
     private $down = <<<SQL
         DROP TABLE IF EXISTS `sessions`;
         DROP TABLE IF EXISTS `login_histories`;
-        DROP TABLE IF EXISTS `users`;
         DROP TABLE IF EXISTS `roles_permissions`;
         DROP TABLE IF EXISTS `roles`;
     SQL;

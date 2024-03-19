@@ -19,8 +19,8 @@ services:
   db:
     build: ./.docker/db
     environment:
-      - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=laravel
+      - MYSQL_ROOT_PASSWORD=root
     ports:
       - "13306:3306"
     volumes:
@@ -29,9 +29,10 @@ services:
       - v-db:/var/lib/mysql
   web:
     build: ./.docker/web
-    # environment:
+    environment:
+      - API_HOST=web
     ports:
-      - "3000:3000"
+      - "5173:5173"
     volumes:
       - ./:/pkg:cached
 volumes:

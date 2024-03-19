@@ -2,7 +2,16 @@
 
 namespace App\Controller;
 
-use App\Service\Orders\OrdersService;
+use App\Domain\Orders\Order;
+use App\Domain\Orders\OrderCollection;
+use App\Domain\Orders\Validator\Apply;
+use App\Domain\Orders\Validator\Approve;
+use App\Domain\Orders\Validator\Cancel;
+use App\Domain\Orders\Validator\Create;
+use App\Domain\Orders\Validator\Delete;
+use App\Domain\Orders\Validator\Edit;
+use App\Domain\Orders\Validator\Reject;
+use App\Storage\Orders\Command as Orders;
 use Illuminate\Http\Request;
 
 /**
@@ -15,7 +24,8 @@ class OrdersController
      */
     public function __construct(
         private Request $request,
-        private OrdersService $ordersService,
+        private Orders $orders,
+        private OrderCollection $orderCollection,
     ) {
     }
 
@@ -25,7 +35,7 @@ class OrdersController
     public function search()
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'search' => ['array'],
             'sort' => ['array'],
             'sort.*' => ['string'],
@@ -34,7 +44,7 @@ class OrdersController
         ]);
 
         // 02. Invoke Use Case
-        $orders = $this->ordersService->search(...$validatedRequest);
+        $orders = $this->orderCollection->search(...$inputData);
 
         // 03. Return Response
         return $orders;
@@ -49,7 +59,7 @@ class OrdersController
         // (NOP)
 
         // 02. Invoke Use Case
-        $order = $this->ordersService->get($id);
+        $order = $this->orderCollection->get($id);
 
         // 03. Return Response
         return $order;
@@ -58,16 +68,20 @@ class OrdersController
     /**
      * 新規作成
      */
-    public function create()
+    public function create(Create $create)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'title' => ['required', 'string'],
             'body' => ['required', 'string'],
         ]);
 
         // 02. Invoke Use Case
-        $orderId = $this->ordersService->create(...$validatedRequest);
+        $order = new Order($inputData);
+        $orderId = $order->save(
+            validator: $create,
+            storage: $this->orders,
+        );
 
         // 03. Return Response
         return ['id' => $orderId];
@@ -76,107 +90,139 @@ class OrdersController
     /**
      * 編集
      */
-    public function edit(int $id)
+    public function edit(int $id, Edit $edit)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'title' => ['filled', 'string'],
             'body' => ['filled', 'string'],
             'updatedAt' => ['string', 'min:19', 'max:19'],
         ]);
 
         // 02. Invoke Use Case
-        $this->ordersService->edit($id, ...$validatedRequest);
+        $order = new Order($inputData);
+        $order->save(
+            validator: $edit,
+            storage: $this->orders,
+        );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 
     /**
      * 承認フロー: 開始
      */
-    public function apply(int $id)
+    public function apply(int $id, Apply $apply)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]);
+        ]) + [
+            'approvalFlows' => $this->orderCollection->makeApprovalFlow($id),
+        ];
 
         // 02. Invoke Use Case
-        $this->ordersService->apply($id, ...$validatedRequest);
+        $order = new Order($inputData);
+        $order->save(
+            validator: $apply,
+            storage: $this->orders,
+        );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 
     /**
      * 承認フロー: 承認
      */
-    public function approve(int $id)
+    public function approve(int $id, Approve $approve)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'sequenceNo' => ['required', 'integer'],
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]);
-        $validatedRequest['approvalUserId'] = $this->request->user()->id;
+        ]) + [
+            'id' => $id,
+            'approvalUserId' => $this->request->user()->id,
+        ];
 
         // 02. Invoke Use Case
-        $this->ordersService->approve($id, ...$validatedRequest);
+        $order = new Order($inputData);
+        $order->save(
+            validator: $approve,
+            storage: $this->orders,
+        );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 
     /**
      * 承認フロー: 却下
      */
-    public function reject(int $id)
+    public function reject(int $id, Reject $reject)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'sequenceNo' => ['required', 'integer'],
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]);
-        $validatedRequest['approvalUserId'] = $this->request->user()->id;
+        ]) + [
+            'id' => $id,
+            'approvalUserId' => $this->request->user()->id,
+        ];
 
         // 02. Invoke Use Case
-        $this->ordersService->reject($id, ...$validatedRequest);
+        $order = new Order($inputData);
+        $order->save(
+            validator: $reject,
+            storage: $this->orders,
+        );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 
     /**
      * 承認フロー: 取消
      */
-    public function cancel(int $id)
+    public function cancel(int $id, Cancel $cancel)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]);
-        $validatedRequest['approvalUserId'] = $this->request->user()->id;
+        ]) + [
+            'id' => $id,
+            'approvalUserId' => $this->request->user()->id,
+        ];
 
         // 02. Invoke Use Case
-        $this->ordersService->cancel($id, ...$validatedRequest);
+        $order = new Order($inputData);
+        $order->save(
+            validator: $cancel,
+            storage: $this->orders,
+        );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 
     /**
      * 削除
      */
-    public function delete(int $id)
+    public function delete(int $id, Delete $delete)
     {
         // 01. Validate Request
-        // (NOP)
+        $inputData = ['id' => $id];
 
         // 02. Invoke Use Case
-        $this->ordersService->delete($id);
+        $order = new Order($inputData);
+        $order->save(
+            validator: $delete,
+            storage: $this->orders,
+        );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 }

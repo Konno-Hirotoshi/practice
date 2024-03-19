@@ -62,6 +62,6 @@ class SessionsController
      */
     public function logout()
     {
-        return (new JsonResponse(['message' => 'succeed']))->withoutCookie('key');
+        return (new JsonResponse(['succeed' => true]))->withoutCookie('key');
     }
 }

@@ -1,29 +1,32 @@
 <?php
 
-namespace App\Domain\Roles\UseCase;
+namespace App\Domain\Roles\Validator;
 
-use App\Base\BaseUseCase;
+use App\Base\BaseValidator;
 use App\Base\CustomException;
 use App\Domain\Roles\Role;
 use App\Domain\Roles\Interface\Validator;
 use App\Storage\Roles\Query as Roles;
 use App\Storage\Users\Query as Users;
 
-class Delete extends BaseUseCase implements Validator
+class Delete extends BaseValidator implements Validator
 {
     /**
      * コンストラクタ
+     *
+     * @param Roles $roles 役割
+     * @param Users $users 利用者
      */
     public function __construct(
-        private Users $users,
         private Roles $roles,
+        private Users $users,
     ) {
     }
 
     /**
      * バリデーション
      *
-     * @param Role $role
+     * @param Role $role 役割エンティティ
      */
     public function validate(Role $role)
     {

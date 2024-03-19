@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use App\Domain\Roles\Role;
-use App\Domain\Roles\UseCase\Create;
-use App\Domain\Roles\UseCase\Delete;
-use App\Domain\Roles\UseCase\Edit;
-use App\Service\RolesService;
+use App\Domain\Roles\RoleCollection;
+use App\Domain\Roles\Validator\Create;
+use App\Domain\Roles\Validator\Delete;
+use App\Domain\Roles\Validator\Edit;
 use App\Storage\Roles\Command;
 use Illuminate\Http\Request;
 
@@ -17,10 +17,11 @@ class RolesController
 {
     /**
      * コンストラクタ
+     *
      */
     public function __construct(
         private Request $request,
-        private RolesService $rolesService,
+        private RoleCollection $roleCollection,
         private Command $roles,
     ) {
     }
@@ -31,7 +32,7 @@ class RolesController
     public function search()
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'search' => ['array'],
             'sort' => ['array'],
             'sort.*' => ['string'],
@@ -40,7 +41,7 @@ class RolesController
         ]);
 
         // 02. Invoke Use Case
-        $roles = $this->rolesService->search(...$validatedRequest);
+        $roles = $this->roleCollection->search($inputData);
 
         // 03. Return Response
         return $roles;
@@ -55,7 +56,7 @@ class RolesController
         // (NOP)
 
         // 02. Invoke Use Case
-        $role = $this->rolesService->get($id);
+        $role = $this->roleCollection->get($id);
 
         // 03. Return Response
         return $role;
@@ -67,15 +68,21 @@ class RolesController
     public function create(Create $create)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
+            // 名称
             'name' => ['required', 'string', 'max:20'],
+            // 備考
             'note' => ['string', 'max:200'],
+            // 選択された権限のリスト
             'permissionIds' => ['array'],
             'permissionIds.*' => ['integer'],
-        ]);
+        ]) + [
+            // 備考 デフォルト値
+            'note' => '',
+        ];
 
         // 02. Invoke Use Case
-        $role = new Role(...$validatedRequest);
+        $role = new Role($inputData);
         $roleId = $role->save(
             validator: $create,
             storage: $this->roles,
@@ -91,23 +98,29 @@ class RolesController
     public function edit(int $id, Edit $edit)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
+            // 名称
             'name' => ['filled', 'string', 'max:20'],
+            // 備考
             'note' => ['string', 'max:200'],
+            // 選択された権限のリスト
             'permissionIds' => ['array'],
             'permissionIds.*' => ['integer'],
+            // 最終更新日時
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]);
+        ]) + [
+            'id' => $id,
+        ];
 
         // 02. Invoke Use Case
-        $role = new Role(...$validatedRequest, id: $id);
-        $roleId = $role->save(
+        $role = new Role($inputData);
+        $role->save(
             validator: $edit,
             storage: $this->roles,
         );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 
     /**
@@ -116,16 +129,16 @@ class RolesController
     public function delete(int $id, Delete $delete)
     {
         // 01. Validate Request
-        // (NOP)
+        $inputData = ['id' => $id];
 
         // 02. Invoke Use Case
-        $role = new Role(id: $id);
-        $roleId = $role->save(
+        $role = new Role($inputData);
+        $role->save(
             validator: $delete,
             storage: $this->roles,
         );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 }

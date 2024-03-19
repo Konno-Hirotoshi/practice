@@ -21,10 +21,10 @@ final class AuthorizationService
     }
 
     /**
-     * 指定された役割が指定パスへのアクセス権限を持っているか判定する
+     * 役割が指定パスへのアクセス権限を持っているか判定する
      * 
-     * @param int $roleId
-     * @param string $path
+     * @param int $roleId 役割ID
+     * @param string $path 判定するパス
      */
     public function authorize(int $roleId, string $path)
     {
@@ -32,12 +32,10 @@ final class AuthorizationService
             return;
         }
 
-        $path = explode('/', $path);
-        $controller = $path[0];
-        $action = $path[1] ?? 'index';
+        list($controller, $action) = explode('/', $path);
         $allowedPaths = $this->getBackendPaths($roleId);
 
-        if (isset($allowedPaths[$controller]) && in_array($action, $allowedPaths[$controller])) {
+        if (isset($allowedPaths[$controller]) && in_array($action ?? 'index', $allowedPaths[$controller])) {
             return;
         }
 
@@ -45,7 +43,7 @@ final class AuthorizationService
     }
 
     /**
-     * 指定された役割が利用可能なバックエンドのパスの一覧を取得する
+     * 役割が利用可能なバックエンドパスの一覧を取得する
      */
     public function getFrontendPaths(int $roleId): array
     {
@@ -54,7 +52,7 @@ final class AuthorizationService
     }
 
     /**
-     * 指定された役割が利用可能なフロントエンドのパスの一覧を取得する
+     * 役割が利用可能なバックエンドパスの一覧を取得する
      */
     private function getBackendPaths(int $roleId): array
     {

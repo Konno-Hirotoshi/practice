@@ -19,15 +19,15 @@ class Query
     /**
      * 指定日時以降にブロックされた認証履歴の数を取得する
      * 
-     * @param string $email
-     * @param int $period
-     * @param int|null $date
+     * @param string $email メールアドレス
+     * @param int $period 期間
+     * @param ?int $basisTime 基準日時
      * @return int
      */
-    public function getRecentBlockCount(string $email, int $period, ?int $date = null): int
+    public function getRecentBlockCount(string $email, int $period, ?int $basisTime = null): int
     {
         $blockCount = DB::table('login_histories')
-            ->where('date', '>', date('Y-m-d H:i:s', $date ?? time() - $period))
+            ->where('date', '>', date('Y-m-d H:i:s', $basisTime ?? time() - $period))
             ->where('email', $email)
             ->where('result', self::RESULT_BLOCK)
             ->count();

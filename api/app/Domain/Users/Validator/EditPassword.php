@@ -1,17 +1,20 @@
 <?php
 
-namespace App\Domain\Users\UseCase;
+namespace App\Domain\Users\Validator;
 
-use App\Base\BaseUseCase;
+use App\Base\BaseValidator;
 use App\Base\CustomException;
 use App\Domain\Users\User;
 use App\Domain\Users\Interface\Validator;
 use App\Storage\Users\Query as Users;
 use App\Service\AuthenticationService;
 
-class EditPassword extends BaseUseCase implements Validator
+class EditPassword extends BaseValidator implements Validator
 {
+    /** @var string 現在のパスワード */
     private readonly string $currentPassword;
+
+    /** @var string 新しいパスワード（再入力） */
     private readonly string $retypePassword;
 
     /**

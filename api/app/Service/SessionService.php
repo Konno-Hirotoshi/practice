@@ -99,7 +99,7 @@ class SessionService
         }
         $this->sessions->delete(
             key: $sessionKey,
-            now: $this->getNow(),
+            basisTime: $this->getNow(),
         );
     }
 

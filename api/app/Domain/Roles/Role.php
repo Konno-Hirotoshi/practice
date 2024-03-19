@@ -11,34 +11,55 @@ use App\Domain\Roles\Interface\Validator;
  */
 readonly class Role
 {
+    /** @var int $id ID */
+    public ?int $id;
+
+    /** @var string $name 名称 */
+    public string $name;
+
+    /** @var string $note 備考 */
+    public string $note;
+
+    /** @var array $permissionIds 選択された権限のリスト */
+    public array $permissionIds;
+
+    /** @var string $updatedAt 最終更新日時 */
+    public string $updatedAt;
+
+
     /**
      * コンストラクタ
      *
-     * @param int $id ID
-     * @param string $name 名称
-     * @param string $note 備考
-     * @param array $permissionIds 選択された権限のリスト
-     * @param string $updatedAt 最終更新日時
+     * @param array $inputData 入力パラメータ
      */
-    public function __construct(
-        public ?int $id = null,
-        public string $name = '',
-        public string $note = '',
-        public array $permissionIds = [],
-        public string $updatedAt = '',
-    ) {
+    public function __construct($inputData)
+    {
+        foreach ($inputData as $key => $value) {
+            $this->{$key} = $value;
+        }
+
+        if ($validationErrors = $this->validate()) {
+            throw new CustomException($validationErrors);
+        }
+    }
+
+    /**
+     * エンティティの妥当性を検証する
+     */
+    private function validate(): array
+    {
         $validationErrors = [];
 
-        foreach ($permissionIds as $permissionId) {
-            if (!ctype_digit($permissionId)) {
-                $validationErrors['permission_ids'] = 'format';
-                break;
+        if (isset($this->permissionIds)) {
+            foreach ($this->permissionIds as $permissionId) {
+                if (!is_int($permissionId)) {
+                    $validationErrors['permission_ids'] = 'format';
+                    break;
+                }
             }
         }
 
-        if ($validationErrors) {
-            throw new CustomException($validationErrors);
-        }
+        return $validationErrors;
     }
 
     /**
@@ -51,6 +72,6 @@ readonly class Role
     public function save(Validator $validator, Storage $storage): mixed
     {
         $validator->validate($this);
-        return $storage->save($validator::class, $this);
+        return $storage->save($this, $validator::class);
     }
 }

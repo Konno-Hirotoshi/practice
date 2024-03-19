@@ -6,5 +6,5 @@ use App\Domain\Users\User;
 
 interface Storage
 {
-    public function save(string $type, User $object);
+    public function save(User $object, string $context);
 }

@@ -3,34 +3,36 @@
 namespace App\Storage\Orders;
 
 use App\Base\CustomException;
-use App\Service\Orders\Commands\Approve;
-use App\Service\Orders\Commands\Cancel;
-use App\Service\Orders\Commands\Create;
-use App\Service\Orders\Commands\Delete;
-use App\Service\Orders\Commands\Edit;
-use App\Service\Orders\Commands\Reject;
-use App\Service\Orders\Commands\Apply;
+use App\Domain\Orders\Interface\Storage;
+use App\Domain\Orders\Order;
+use App\Domain\Orders\Validator\Create;
+use App\Domain\Orders\Validator\Edit;
+use App\Domain\Orders\Validator\Apply;
+use App\Domain\Orders\Validator\Approve;
+use App\Domain\Orders\Validator\Reject;
+use App\Domain\Orders\Validator\Cancel;
+use App\Domain\Orders\Validator\Delete;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
 /**
  * 取引 - 操作クラス
  */
-class Command extends Query
+class Command extends Query implements Storage
 {
     /**
      * 引数のオブジェクトをストレージへ保存する
      */
-    public function save(object $dto)
+    public function save(Order $order, string $context)
     {
-        return match (true) {
-            $dto instanceof Create => $this->create($dto),
-            $dto instanceof Edit => $this->edit($dto),
-            $dto instanceof Apply => $this->apply($dto),
-            $dto instanceof Approve => $this->approve($dto),
-            $dto instanceof Reject => $this->reject($dto),
-            $dto instanceof Cancel => $this->cancel($dto),
-            $dto instanceof Delete => $this->delete($dto),
+        return match ($context) {
+            Create::class => $this->create($order),
+            Edit::class => $this->edit($order),
+            Apply::class => $this->apply($order),
+            Approve::class => $this->approve($order),
+            Reject::class => $this->reject($order),
+            Cancel::class => $this->cancel($order),
+            Delete::class => $this->delete($order),
         };
     }
 
@@ -39,13 +41,13 @@ class Command extends Query
      * 
      * @return int 作成された取引のID
      */
-    private function create(Create $dto): int
+    private function create(Order $order): int
     {
-        return DB::transaction(function () use ($dto) {
+        return DB::transaction(function () use ($order) {
             // レコード作成 (取引テーブル)
             $orderId = DB::table('orders')->insertGetId([
-                'title' => $dto->title,
-                'body' => $dto->body,
+                'title' => $order->title,
+                'body' => $order->body,
                 'approval_status' => 0,
                 'owner_user_id' => 0,
             ]);
@@ -56,16 +58,16 @@ class Command extends Query
     /**
      * 編集
      */
-    private function edit(Edit $dto): void
+    private function edit(Order $order): void
     {
-        DB::transaction(function () use ($dto) {
+        DB::transaction(function () use ($order) {
             // ロック取得
-            $this->lockForUpdate($dto->id, $dto->updatedAt);
+            $this->lockForUpdate($order->id, $order->updatedAt);
 
             // レコード更新 (取引テーブル)
-            DB::table('orders')->where('id', $dto->id)->update(array_filter([
-                'title' => $dto->title,
-                'body' => $dto->body,
+            DB::table('orders')->where('id', $order->id)->update(array_filter([
+                'title' => $order->title,
+                'body' => $order->body,
                 'updated_at' => new Expression('CURRENT_TIMESTAMP'),
             ], fn ($value) => isset($value)));
         });
@@ -74,29 +76,29 @@ class Command extends Query
     /**
      * 承認フロー: 申請
      */
-    private function apply(Apply $dto): void
+    private function apply(Order $order): void
     {
-        DB::transaction(function () use ($dto) {
+        DB::transaction(function () use ($order) {
             // ロック取得
-            $this->lockForUpdate($dto->id, $dto->updatedAt);
+            $this->lockForUpdate($order->id, $order->updatedAt);
 
             // ステータス更新 (取引テーブル)
-            DB::table('orders')->where('id', $dto->id)->update([
+            DB::table('orders')->where('id', $order->id)->update([
                 'approval_status' => self::APPROVAL_STATUS_APPLY,
             ]);
 
             // 過去の承認フローを削除 (取引-承認フローテーブル)
             DB::table('order_approval_flows')
-                ->where('order_id', $dto->id)
+                ->where('order_id', $order->id)
                 ->delete();
 
             // 承認フロー追加 (取引-承認フローテーブル)
             $approvalFlows = array_map(fn ($userId, $sequenceNo) => [
-                'order_id' => $dto->id,
+                'order_id' => $order->id,
                 'sequence_no' => $sequenceNo,
                 'user_id' => $userId,
                 'approval_status' => 0,
-            ], $dto->approvalFlows, range(1, count($dto->approvalFlows)));
+            ], $order->approvalFlows, range(1, count($order->approvalFlows)));
             DB::table('order_approval_flows')
                 ->insert($approvalFlows);
         });
@@ -105,24 +107,24 @@ class Command extends Query
     /**
      * 承認フロー: 承認
      */
-    private function approve(Approve $dto): void
+    private function approve(Order $order): void
     {
-        DB::transaction(function () use ($dto) {
+        DB::transaction(function () use ($order) {
             // ロック取得
-            $this->lockForUpdate($dto->id, $dto->updatedAt);
+            $this->lockForUpdate($order->id, $order->updatedAt);
 
             // ステータス更新 (取引テーブル)
-            DB::table('orders')->where('id', $dto->id)->update([
-                'approval_status' => $dto->newStatus,
+            DB::table('orders')->where('id', $order->id)->update([
+                'approval_status' => $order->newStatus,
                 'updated_at' => new Expression('CURRENT_TIMESTAMP'),
             ]);
 
             // 承認フロー更新 (取引-承認フローテーブル)
             DB::table('order_approval_flows')
-                ->where('order_id', $dto->id)
-                ->where('sequence_no', $dto->sequenceNo)
+                ->where('order_id', $order->id)
+                ->where('sequence_no', $order->sequenceNo)
                 ->update([
-                    'approval_date' => date('Y-m-d H:i:s', $dto->approvalDate),
+                    'approval_date' => date('Y-m-d H:i:s', $order->approvalDate),
                     'approval_status' => self::APPROVAL_STATUS_APPROVE,
                 ]);
         });
@@ -131,23 +133,23 @@ class Command extends Query
     /**
      * 承認フロー: 非承認
      */
-    private function reject(Reject $dto): void
+    private function reject(Order $order): void
     {
-        DB::transaction(function () use ($dto) {
+        DB::transaction(function () use ($order) {
             // ロック取得
-            $this->lockForUpdate($dto->id, $dto->updatedAt);
+            $this->lockForUpdate($order->id, $order->updatedAt);
 
             // ステータス更新 (取引テーブル)
-            DB::table('orders')->where('id', $dto->id)->update([
+            DB::table('orders')->where('id', $order->id)->update([
                 'approval_status' => self::APPROVAL_STATUS_REJECT,
             ]);
 
             // 承認フロー更新 (取引-承認フローテーブル)
             DB::table('order_approval_flows')
-                ->where('order_id', $dto->id)
-                ->where('sequence_no', $dto->sequenceNo)
+                ->where('order_id', $order->id)
+                ->where('sequence_no', $order->sequenceNo)
                 ->update([
-                    'approval_date' => date('Y-m-d H:i:s', $dto->approvalDate),
+                    'approval_date' => date('Y-m-d H:i:s', $order->approvalDate),
                     'approval_status' => self::APPROVAL_STATUS_REJECT,
                 ]);
         });
@@ -156,14 +158,14 @@ class Command extends Query
     /**
      * 承認フロー: 取り消し
      */
-    private function cancel(Cancel $dto): void
+    private function cancel(Order $order): void
     {
-        DB::transaction(function () use ($dto) {
+        DB::transaction(function () use ($order) {
             // ロック取得
-            $this->lockForUpdate($dto->id, $dto->updatedAt);
+            $this->lockForUpdate($order->id, $order->updatedAt);
 
             // ステータス更新 (取引テーブル)
-            DB::table('orders')->where('id', $dto->id)->update([
+            DB::table('orders')->where('id', $order->id)->update([
                 'approval_status' => self::APPROVAL_STATUS_CANCEL,
             ]);
         });
@@ -172,16 +174,16 @@ class Command extends Query
     /**
      * 削除
      */
-    private function delete(Delete $dto): void
+    private function delete(Order $order): void
     {
         // レコード削除 (取引テーブル)
         DB::table('orders')
-            ->where('id', $dto->deleteIds)
+            ->where('id', $order->id)
             ->delete();
 
         // レコード削除 (取引-承認フローテーブル)
         DB::table('order_approval_flows')
-            ->where('order_id', $dto->deleteIds)
+            ->where('order_id', $order->id)
             ->delete();
     }
 

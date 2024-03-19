@@ -6,16 +6,30 @@ abstract class BaseValidator
 {
     private $validationErrors = [];
 
-    public function setError($field, $error)
+    protected function setError($field, $error = null)
     {
-        $this->validationErrors[$field] = $error;
+        if ($error === null) {
+            $this->validationErrors = $field;
+        } else {
+            $this->validationErrors[$field] = $error;
+        }
         return $this;
     }
 
-    public function throwIfErrors()
+    protected function throw()
+    {
+        throw new CustomException($this->validationErrors);
+    }
+
+    protected function throwIfErrors()
     {
         if ($this->validationErrors) {
             throw new CustomException($this->validationErrors);
         }
+    }
+
+    protected function context(): string
+    {
+        return $this::class;
     }
 }

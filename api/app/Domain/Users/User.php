@@ -11,45 +11,71 @@ use App\Domain\Users\Interface\Validator;
  */
 readonly class User
 {
+    /** @var int ID */
+    public ?int $id;
+
+    /** @var string フルネーム */
+    public string $fullName;
+
+    /** @var string メールアドレス */
+    public string $email;
+
+    /** @var int 部署ID */
+    public int $departmentId;
+
+    /** @var int 役割ID */
+    public int $roleId;
+
+    /** @var string パスワード */
+    public string $password;
+
+    /** @var string 備考 */
+    public string $note;
+
+    /** @var string 最終更新日時 */
+    public string $updatedAt;
+
+
     /**
      * コンストラクタ
      *
-     * @param int $id ID
-     * @param string $fullName フルネーム
-     * @param string $email メールアドレス
-     * @param int $departmentId 部署ID
-     * @param int $roleId 役割ID
-     * @param string $password パスワード
-     * @param string $note 備考
-     * @param string $updatedAt 最終更新日時
+     * @param array $inputData 入力パラメータ
      */
-    public function __construct(
-        public ?int $id = null,
-        public string $fullName = '',
-        public string $email = '',
-        public int $departmentId = 0,
-        public int $roleId = 0,
-        public string $password = 'default@',
-        public string $note = '',
-        public string $updatedAt = '',
-    ) {
-        $validationErrors = [];
-
-        // メールアドレスの形式が正しいか
-        $validEmail = $this->isValidEmail($email);
-        if (!$validEmail) {
-            $validationErrors['email'] = 'rule';
+    public function __construct($inputData)
+    {
+        foreach ($inputData as $key => $value) {
+            $this->{$key} = $value;
         }
 
-        // パスワードがルールに合致するか
-        $validPassword = $this->isValidPassword($password);
-        if (!$validPassword) {
-            $validationErrors['password'] = 'rule';
-        }
-
-        if ($validationErrors) {
+        if ($validationErrors = $this->validate()) {
             throw new CustomException($validationErrors);
         }
+    }
+
+    /**
+     * エンティティの妥当性を検証する
+     */
+    private function validate(): array
+    {
+        $validationErrors = [];
+
+        if (isset($this->email)) {
+            // メールアドレスの形式が正しいか
+            $validEmail = $this->isValidEmail($this->email);
+            if (!$validEmail) {
+                $validationErrors['email'] = 'rule';
+            }
+        }
+
+        if (isset($this->password)) {
+            // パスワードがルールに合致するか
+            $validPassword = $this->isValidPassword($this->password);
+            if (!$validPassword) {
+                $validationErrors['password'] = 'rule';
+            }
+        }
+
+        return $validationErrors;
     }
 
     /**
@@ -61,9 +87,6 @@ readonly class User
      */
     private function isValidEmail(string $email): bool
     {
-        if ($email === '') {
-            return true;
-        }
         return preg_match('/^[!-~]+@[!-~]+$/', $email) === 1;
     }
 
@@ -78,10 +101,6 @@ readonly class User
      */
     private function isValidPassword(string $password): bool
     {
-        if ($password === '') {
-            return true;
-        }
-
         $hasUpperCharacter = preg_match('/[a-z]/', $password) === 1;
         $hasLowerCharacter = preg_match('/[A-Z]/', $password) === 1;
         $hasNumer = preg_match('/[0-9]/', $password) === 1;
@@ -93,13 +112,13 @@ readonly class User
     /**
      * エンティティを検証して保存する
      * 
-     * @param Validator $validator バリデータークラス
-     * @param Storage $storage コマンドクラス
+     * @param Validator $validator 検証クラス
+     * @param Storage $storage 永続化クラス
      * @return mixed
      */
     public function save(Validator $validator, Storage $storage): mixed
     {
         $validator->validate($this);
-        return $storage->save($validator::class, $this);
+        return $storage->save($this, $validator::class);
     }
 }

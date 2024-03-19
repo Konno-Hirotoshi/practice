@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Service;
+namespace App\Domain\Users;
 
 use App\Base\SearchOption;
-use App\Storage\Users\Command as Users;
+use App\Storage\Users\Query as Users;
 
 /**
- * 利用者サービス
+ * 利用者コレクション
  */
-class UsersService
+class UserCollection
 {
     /**
      * コンストラクタ

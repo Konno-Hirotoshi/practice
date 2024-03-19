@@ -5,9 +5,9 @@ namespace App\Storage\Roles;
 use App\Base\CustomException;
 use App\Domain\Roles\Interface\Storage;
 use App\Domain\Roles\Role;
-use App\Domain\Roles\UseCase\Create;
-use App\Domain\Roles\UseCase\Delete;
-use App\Domain\Roles\UseCase\Edit;
+use App\Domain\Roles\Validator\Create;
+use App\Domain\Roles\Validator\Delete;
+use App\Domain\Roles\Validator\Edit;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
@@ -19,9 +19,9 @@ class Command extends Query implements Storage
     /**
      * 引数のオブジェクトをストレージへ保存する
      */
-    public function save($type, Role $role)
+    public function save(Role $role, string $context)
     {
-        return match ($type) {
+        return match ($context) {
             Create::class => $this->create($role),
             Edit::class => $this->edit($role),
             Delete::class => $this->delete($role),
@@ -60,12 +60,12 @@ class Command extends Query implements Storage
     {
         DB::transaction(function () use ($role) {
             // ロック取得
-            $this->lockForUpdate($role->id, $role->updatedAt);
+            $this->lockForUpdate($role);
 
             // 役割テーブル
             DB::table('roles')->where('id', $role->id)->update(array_filter([
-                'name' => $role->name,
-                'note' => $role->note,
+                'name' => $role->name ?? null,
+                'note' => $role->note ?? null,
                 'updated_at' => new Expression('CURRENT_TIMESTAMP'),
             ], fn ($value) => isset($value)));
 
@@ -100,22 +100,21 @@ class Command extends Query implements Storage
     /**
      * 更新対象のロックを取得する
      * 
-     * @param int $id
-     * @param string|null $updatedAt
+     * @param Role $role
      * @return void
      */
-    private function lockForUpdate(int $id, ?string $updatedAt = null): void
+    private function lockForUpdate(Role $role): void
     {
         $row = DB::table('roles')
             ->lockForUpdate()
-            ->where('id', $id)
+            ->where('id', $role->id)
             ->first(['updated_at']);
 
         if ($row === null) {
             throw new CustomException('record_not_found');
         }
 
-        if ($updatedAt !== null && $updatedAt !== $row->updated_at) {
+        if (isset($role->updatedAt) && $role->updatedAt !== $row->updated_at) {
             throw new CustomException('conflict');
         }
     }

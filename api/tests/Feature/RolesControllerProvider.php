@@ -118,7 +118,7 @@ class RolesControllerProvider
                 'database' => $db,
                 'responseCode' => 200,
                 'responseContent' => [
-                    'status' => 'succeed',
+                    'succeed' => true,
                 ],
                 'afterDatabase' => [
                     'roles' => [
@@ -160,7 +160,7 @@ class RolesControllerProvider
                 'database' => $db,
                 'responseCode' => 200,
                 'responseContent' => [
-                    'status' => 'succeed',
+                    'succeed' => true,
                 ],
                 'afterDatabase' => [
                     'roles' => [
@@ -187,7 +187,7 @@ class RolesControllerProvider
                 'database' => $db,
                 'responseCode' => 200,
                 'responseContent' => [
-                    'status' => 'succeed',
+                    'succeed' => true,
                 ],
                 'afterDatabase' => [
                     'roles' => [

@@ -33,8 +33,8 @@ final class AuthenticationService
     /**
      * 利用者パスワード認証
      * 
-     * @param string $email
-     * @param string $password
+     * @param string $email メールアドレス
+     * @param string $password パスワード
      * @return object
      */
     public function authenticate(string $email, string $password): object

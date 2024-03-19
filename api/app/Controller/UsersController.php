@@ -3,11 +3,11 @@
 namespace App\Controller;
 
 use App\Domain\Users\User;
-use App\Domain\Users\UseCase\Create;
-use App\Domain\Users\UseCase\Delete;
-use App\Domain\Users\UseCase\Edit;
-use App\Domain\Users\UseCase\EditPassword;
-use App\Service\UsersService;
+use App\Domain\Users\UserCollection;
+use App\Domain\Users\Validator\Create;
+use App\Domain\Users\Validator\Delete;
+use App\Domain\Users\Validator\Edit;
+use App\Domain\Users\Validator\EditPassword;
 use App\Storage\Users\Command;
 use Illuminate\Http\Request;
 
@@ -21,7 +21,7 @@ class UsersController
      */
     public function __construct(
         private Request $request,
-        private UsersService $usersService,
+        private UserCollection $userCollection,
         private Command $users,
     ) {
     }
@@ -32,7 +32,7 @@ class UsersController
     public function search()
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
             'search' => ['array'],
             'sort' => ['array'],
             'sort.*' => ['string'],
@@ -41,7 +41,7 @@ class UsersController
         ]);
 
         // 02. Invoke Use Case
-        $users = $this->usersService->search(...$validatedRequest);
+        $users = $this->userCollection->search(...$inputData);
 
         // 03. Return Response
         return $users;
@@ -56,7 +56,7 @@ class UsersController
         // (NOP)
 
         // 02. Invoke Use Case
-        $user = $this->usersService->get($id);
+        $user = $this->userCollection->get($id);
 
         // 03. Return Response
         return $user;
@@ -68,16 +68,28 @@ class UsersController
     public function create(Create $create)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
+            // 氏名
             'fullName' => ['required', 'string', 'max:30'],
+            // メールアドレス
             'email' => ['required', 'string', 'max:100'],
+            // 部署ID
             'departmentId' => ['required', 'integer'],
+            // 役割ID
             'roleId' => ['required', 'integer'],
-            'password' => ['string', 'min:8', 'max:100'],
+            // パスワード
+            'password' => ['required', 'min:8', 'max:100'],
+            // 備考
             'note' => ['string', 'max:200'],
-        ]);
+        ]) + [
+            // パスワード デフォルト値
+            'password' => 'Default@1234',
+            // 備考 デフォルト値
+            'note' => '',
+        ];
 
-        $user = new User(...$validatedRequest);
+        // 02. Invoke Use Case
+        $user = new User($inputData);
         $userId = $user->save(
             validator: $create,
             storage: $this->users,
@@ -93,25 +105,34 @@ class UsersController
     public function edit(int $id, Edit $edit)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
+            // 氏名
             'fullName' => ['filled', 'string', 'max:30'],
+            // メールアドレス
             'email' => ['filled', 'string', 'max:100'],
+            // 部署ID
             'departmentId' => ['filled', 'integer'],
+            // 役割ID
             'roleId' => ['filled', 'integer'],
+            // パスワード
             'password' => ['filled', 'min:8', 'max:100'],
+            // 備考
             'note' => ['string', 'max:200'],
+            // 最終更新日時
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]);
+        ]) + [
+            'id' => $id,
+        ];
 
         // 02. Invoke Use Case
-        $user = new User(...$validatedRequest, id: $id);
+        $user = new User($inputData);
         $user->save(
             validator: $edit,
             storage: $this->users,
         );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 
     /**
@@ -120,24 +141,29 @@ class UsersController
     public function editPassword(int $id, EditPassword $editPassword)
     {
         // 01. Validate Request
-        $validatedRequest = $this->request->validate([
+        $inputData = $this->request->validate([
+            // パスワード
             'password' => ['required', 'min:8', 'max:100'],
-        ]);
-        $additionalRequest = $this->request->validate([
+        ]) + [
+            'id' => $id,
+        ];
+        $additionalData = $this->request->validate([
+            // 現在のパスワード
             'currentPssword' => ['required', 'min:8', 'max:100'],
+            // 新しいパスワード（再入力）
             'retypePassword' => ['required', 'min:8', 'max:100'],
         ]);
+        $editPassword->setAdditionalInfo(...$additionalData);
 
         // 02. Invoke Use Case
-        $editPassword->setAdditionalInfo(...$additionalRequest);
-        $user = new User(...$validatedRequest);
+        $user = new User($inputData);
         $user->save(
             validator: $editPassword,
             storage: $this->users,
         );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 
     /**
@@ -146,16 +172,16 @@ class UsersController
     public function delete(int $id, Delete $delete)
     {
         // 01. Validate Request
-        // (NOP)
+        $inputData = ['id' => $id];
 
         // 02. Invoke Use Case
-        $user = new User(id: $id);
+        $user = new User($inputData);
         $user->save(
             validator: $delete,
             storage: $this->users,
         );
 
         // 03. Return Response
-        return ['status' => 'succeed'];
+        return ['succeed' => true];
     }
 }

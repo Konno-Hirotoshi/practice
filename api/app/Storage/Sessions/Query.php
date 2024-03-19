@@ -13,7 +13,7 @@ class Query
      * セッションを取得する
      * 
      * @param string $key
-     * @return object|null
+     * @return ?object
      */
     public function get(string $key): ?object
     {

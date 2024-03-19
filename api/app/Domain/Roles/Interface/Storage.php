@@ -6,5 +6,5 @@ use App\Domain\Roles\Role;
 
 interface Storage
 {
-    public function save(string $type, Role $object);
+    public function save(Role $object, string $context);
 }

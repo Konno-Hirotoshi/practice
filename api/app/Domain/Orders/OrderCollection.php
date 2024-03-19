@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Service;
+namespace App\Domain\Orders;
 
 use App\Base\SearchOption;
-use App\Storage\Roles\Command as Roles;
+use App\Storage\Orders\Query as Orders;
 
 /**
- * 役割 - サービスクラス
+ * 取引コレクション
  */
-class RolesService
+class OrderCollection
 {
     /**
      * コンストラクタ
      */
     public function __construct(
-        private Roles $roles,
+        private Orders $orders,
     ) {
     }
 
@@ -27,7 +27,7 @@ class RolesService
             'id' => 'value',
         ]);
 
-        return $this->roles->search($option);
+        return $this->orders->search($option);
     }
 
     /**
@@ -35,6 +35,14 @@ class RolesService
      */
     public function get(int $id)
     {
-        return $this->roles->get($id);
+        return $this->orders->get($id);
+    }
+
+    /**
+     * 承認フローを作成する
+     */
+    public function makeApprovalFlow($id)
+    {
+        return [1, 10, 20];
     }
 }

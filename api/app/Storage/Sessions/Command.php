@@ -10,20 +10,13 @@ use Illuminate\Support\Facades\DB;
 class Command extends Query
 {
     /**
-     * セッションの有効期限 (秒)
-     */
-    public const SESSION_LIFETIME = 1800;
-
-    /**
      * セッションを作成する
      * 
-     * Note: 主キー重複時に例外を投げる可能性有り (確率は極めて低いので再試行などの対策はしない)
-     * 
-     * @param string $key
-     * @param int $userId
-     * @param int $departmentId
-     * @param int $roleId
-     * @param int $expiredAt
+     * @param string $key セッションキー
+     * @param int $userId 利用者ID
+     * @param int $departmentId 部署ID
+     * @param int $roleId 役割ID
+     * @param int $expiredAt 有効期限
      * @return void
      */
     public function create(string $key, int $userId, int $departmentId, int $roleId, int $expiredAt): void
@@ -41,8 +34,8 @@ class Command extends Query
     /**
      * セッションの有効期限を更新する
      * 
-     * @param string $key
-     * @param int $expiredAt
+     * @param string $key セッションキー
+     * @param int $expiredAt 有効期限
      * @return void
      */
     public function updateExpiredAt(string $key, int $expiredAt): void
@@ -61,15 +54,15 @@ class Command extends Query
      *   ・$keyで指定されたセッション
      *   ・または、有効期限(設定値: 30分)以上未更新のセッション
      * 
-     * @param string $key
-     * @param int $now
+     * @param string $key セッションキー
+     * @param ?int $basisTime 基準日時
      * @return void
      */
-    public function delete(string $key, int $now = null): void
+    public function delete(string $key, int $basisTime = null): void
     {
         DB::table('sessions')
             ->where(['key' => $key])
-            ->orWhere('expired_at', '<=', date('Y-m-d H:i:s', $now))
+            ->orWhere('expired_at', '<=', date('Y-m-d H:i:s', $basisTime))
             ->delete();
     }
 }

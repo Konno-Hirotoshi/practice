@@ -106,7 +106,7 @@ class Query
     public function getCountByRoleId(int|array $roleIds): int
     {
         $count = DB::table('users')
-            ->whereIn('role_id', $roleIds)
+            ->whereIn('role_id', (array)$roleIds)
             ->count();
         return $count;
     }

@@ -10,31 +10,30 @@ return new class extends Migration
             `id` INT NOT NULL AUTO_INCREMENT,
             `title` VARCHAR(60) NOT NULL,
             `body` VARCHAR(255) NOT NULL DEFAULT '',
-            `approval_status` SMALLINT NOT NULL,
+            `approval_status`  SMALLINT UNSIGNED NOT NULL,
             `owner_user_id` INT NOT NULL,
             `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`id`)
         );
         CREATE TABLE `order_approval_flows` (
-            `id` INT NOT NULL AUTO_INCREMENT,
             `order_id` INT NOT NULL,
-            `sequence_no` SMALLINT NOT NULL,
-            `user_id` INT NOT NULL,
-            `approval_status` INT NOT NULL,
+            `sequence_no` SMALLINT UNSIGNED NOT NULL,
+            `approval_user_id` INT NOT NULL,
+            `approval_status` SMALLINT UNSIGNED NOT NULL,
             `approval_date` DATETIME DEFAULT NULL,
             `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id`)
+            PRIMARY KEY (`order_id`, `sequence_no`)
         );
         CREATE TABLE `order_approval_histories` (
-            `id` INT NOT NULL AUTO_INCREMENT,
             `order_id` INT NOT NULL,
-            `user_id` INT NOT NULL,
-            `approval_status` INT NOT NULL,
+            `approval_user_id` INT NOT NULL,
+            `approval_status` INT UNSIGNED NOT NULL,
             `approval_date` DATETIME NOT NULL,
             `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id`)
+            `updated_at` DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`order_id`, `sequence_no`)
         );
     SQL;
 

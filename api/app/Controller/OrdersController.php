@@ -97,7 +97,9 @@ class OrdersController
             'title' => ['filled', 'string'],
             'body' => ['filled', 'string'],
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]);
+        ]) + [
+            'id' => $id,
+        ];
 
         // 02. Invoke Use Case
         $order = new Order($inputData);
@@ -119,6 +121,8 @@ class OrdersController
         $inputData = $this->request->validate([
             'updatedAt' => ['string', 'min:19', 'max:19'],
         ]) + [
+            'id' => $id,
+            'approvalStatus' => Order::APPROVAL_STATUS_APPLY,
             'approvalFlows' => $this->orderCollection->makeApprovalFlow($id),
         ];
 
@@ -142,13 +146,17 @@ class OrdersController
         $inputData = $this->request->validate([
             'sequenceNo' => ['required', 'integer'],
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]) + [
-            'id' => $id,
-            'approvalUserId' => $this->request->user()->id,
-        ];
+        ]);
 
         // 02. Invoke Use Case
-        $order = new Order($inputData);
+        $currentOrder = $this->orderCollection->getEntity(
+            id: $id,
+            withApprovalFlows: true
+        );
+        $order = $currentOrder->approve(
+            sequenceNo: $inputData['sequenceNo'],
+            approvalUserId: $this->request->user()->id,
+        );
         $order->save(
             validator: $approve,
             storage: $this->orders,
@@ -167,13 +175,17 @@ class OrdersController
         $inputData = $this->request->validate([
             'sequenceNo' => ['required', 'integer'],
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]) + [
-            'id' => $id,
-            'approvalUserId' => $this->request->user()->id,
-        ];
+        ]);
 
         // 02. Invoke Use Case
-        $order = new Order($inputData);
+        $currentOrder = $this->orderCollection->getEntity(
+            id: $id,
+            withApprovalFlows: true
+        );
+        $order = $currentOrder->reject(
+            sequenceNo: $inputData['sequenceNo'],
+            approvalUserId: $this->request->user()->id,
+        );
         $order->save(
             validator: $reject,
             storage: $this->orders,

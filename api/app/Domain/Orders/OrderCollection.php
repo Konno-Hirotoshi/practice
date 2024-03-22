@@ -19,7 +19,7 @@ class OrderCollection
     }
 
     /**
-     * 一覧検索
+     * 全体を検索する
      */
     public function search(array $search = [], array $sort = [], int $page = 1, int $perPage = 3): array
     {
@@ -31,7 +31,7 @@ class OrderCollection
     }
 
     /**
-     * 詳細情報取得
+     * 詳細情報を取得する
      */
     public function get(int $id)
     {
@@ -39,10 +39,38 @@ class OrderCollection
     }
 
     /**
+     * エンティティを取得する
+     */
+    public function getEntity(int $id, bool $withBody = false, bool $withApprovalStatus = false, bool $withApprovalFlows = false)
+    {
+        $inputData = ['id' => $id];
+        if ($withBody) {
+            $inputData += (array)$this->orders->get($id);
+        }
+        if ($withApprovalFlows) {
+            $inputData['approvalStatus'] = $this->orders->getApprovalStatus($id);
+            $inputData['approvalFlows'] =  $this->orders->getApprovalFlows($id)->map(function ($row) use ($id) {
+                return new ApprovalFlow([
+                    'orderId' => $id,
+                    'sequenceNo' => $row->sequence_no,
+                    'approvalUserId' => $row->approval_user_id,
+                    'approvalDate' => $row->approval_date,
+                    'approvalStatus' => $row->approval_status,
+                ]);
+            })->toArray();
+        }
+        return new Order($inputData);
+    }
+
+    /**
      * 承認フローを作成する
      */
     public function makeApprovalFlow($id)
     {
-        return [1, 10, 20];
+        return [
+            new ApprovalFlow(['orderId' => $id, 'sequenceNo' => 1, 'approvalUserId' => 1, 'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_NONE]),
+            new ApprovalFlow(['orderId' => $id, 'sequenceNo' => 2, 'approvalUserId' => 1, 'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_NONE]),
+            new ApprovalFlow(['orderId' => $id, 'sequenceNo' => 3, 'approvalUserId' => 1, 'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_NONE]),
+        ];
     }
 }

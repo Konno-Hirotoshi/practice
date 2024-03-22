@@ -43,7 +43,7 @@ class Edit extends BaseValidator implements Validator
     {
         $status = $this->orders->getApprovalStatus($id);
 
-        $currentOrder = new Order(['status' => $status]);
+        $currentOrder = new Order(['approvalStatus' => $status]);
 
         return $currentOrder->isEditable();
     }

@@ -27,9 +27,4 @@ abstract class BaseValidator
             throw new CustomException($this->validationErrors);
         }
     }
-
-    protected function context(): string
-    {
-        return $this::class;
-    }
 }

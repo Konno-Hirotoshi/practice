@@ -65,6 +65,16 @@ class Query
             throw new CustomException('record_not_found');
         }
 
+        $order->approval_flows = DB::table('order_approval_flows')
+            ->where('order_id', $id)
+            ->orderBy('sequence_no')
+            ->get([
+                'sequence_no',
+                'approval_user_id',
+                'approval_status',
+                'approval_date',
+            ]);
+
         return $order;
     }
 
@@ -72,7 +82,7 @@ class Query
      * 承認フローを取得する
      * 
      * @param int $id
-     * @return object
+     * @return \Illuminate\Support\Collection
      */
     public function getApprovalFlows(int $id): object
     {
@@ -81,7 +91,7 @@ class Query
             ->orderBy('sequence_no')
             ->get([
                 'sequence_no',
-                'user_id',
+                'approval_user_id',
                 'approval_date',
                 'approval_status',
             ]);

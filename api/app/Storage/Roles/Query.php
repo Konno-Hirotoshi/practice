@@ -4,6 +4,9 @@ namespace App\Storage\Roles;
 
 use App\Base\CustomException;
 use App\Base\SearchOption;
+use App\Domain\Roles\Role;
+use App\Domain\Roles\UseCase\Delete;
+use App\Domain\Roles\UseCase\Edit;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -82,6 +85,35 @@ class Query
     }
 
     /**
+     * エンティティを取得する
+     *
+     * @param int $id 役割ID
+     * @return Role
+     */
+    public function getEntity(int $id, ?string $updatedAt = null, ?string $context = null): Role
+    {
+        // contextに応じたカラムのみ取得する
+        $dto = DB::table('roles')
+            ->where('id', $id)
+            ->first(match ($context) {
+                Edit::class => ['id', 'name', 'note', 'updated_at'],
+                Delete::class => ['id', 'updated_at'],
+            });
+
+        // レコードが存在しなければエラーとする
+        if ($dto === null) {
+            throw new CustomException('record_not_found');
+        }
+
+        // 最終更新日時に差異があればエラーとする
+        if ($updatedAt !== null && $updatedAt !== $dto->updated_at) {
+            throw new CustomException('conflict');
+        }
+
+        return new Role($this->convert($dto));
+    }
+
+    /**
      * 役割が存在するか
      * 
      * @param int $id
@@ -123,5 +155,28 @@ class Query
             ->whereNot('id', $selfId)
             ->count();
         return $sameNameCount > 0;
+    }
+
+    /**
+     * 取得データをエンティティのコンストラクタの入力形式に変換する
+     *
+     * @param object $dto　取得データDTO
+     * @return array
+     */
+    private function convert(object $dto)
+    {
+        $mapping = [
+            'id' => 'id',
+            'name' => 'name',
+            'note' => 'note',
+            'updated_at' => 'updatedAt',
+        ];
+
+        $inputData = [];
+        foreach ((array)$dto as $key => $value) {
+            $inputData[$mapping[$key]] = $value;
+        }
+
+        return $inputData;
     }
 }

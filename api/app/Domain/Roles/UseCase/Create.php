@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Domain\Roles\Validator;
+namespace App\Domain\Roles\UseCase;
 
-use App\Base\BaseValidator;
+use App\Base\BaseUseCase;
 use App\Domain\Roles\Role;
-use App\Domain\Roles\Interface\Validator;
 use App\Storage\Permissions\Query as Permissions;
-use App\Storage\Roles\Query as Roles;
+use App\Storage\Roles\Command as Roles;
 
 /**
  * 役割作成
  */
-class Create extends BaseValidator implements Validator
+class Create extends BaseUseCase
 {
     /**
      * コンストラクタ
@@ -26,11 +25,32 @@ class Create extends BaseValidator implements Validator
     }
 
     /**
+     * ユースケース実行
+     *
+     * @param array $inputData 入力データ
+     * @return int
+     */
+    public function invoke(array $inputData)
+    {
+        // 01. Create Entity
+        $role = new Role($inputData);
+
+        // 02. Validate Entity
+        $this->validate($role);
+
+        // 02. Store Entity
+        $roleId = $this->roles->save($role, context: __CLASS__);
+
+        // 03. Return ID
+        return $roleId;
+    }
+
+    /**
      * バリデーション
      *
      * @param Role $role 役割エンティティ
      */
-    public function validate(Role $role)
+    private function validate(Role $role)
     {
         // 同名称の役割が存在するか
         $existsDepartmentId = $this->roles->existsName($role->name);

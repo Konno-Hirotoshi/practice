@@ -2,12 +2,11 @@
 
 namespace App\Controller;
 
-use App\Domain\Users\User;
 use App\Domain\Users\UserCollection;
-use App\Domain\Users\Validator\Create;
-use App\Domain\Users\Validator\Delete;
-use App\Domain\Users\Validator\Edit;
-use App\Domain\Users\Validator\EditPassword;
+use App\Domain\Users\UseCase\Create;
+use App\Domain\Users\UseCase\Delete;
+use App\Domain\Users\UseCase\Edit;
+use App\Domain\Users\UseCase\EditPassword;
 use App\Storage\Users\Command;
 use Illuminate\Http\Request;
 
@@ -65,7 +64,7 @@ class UsersController
     /**
      * 新規作成
      */
-    public function create(Create $create)
+    public function create(Create $useCase)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -89,11 +88,7 @@ class UsersController
         ];
 
         // 02. Invoke Use Case
-        $user = new User($inputData);
-        $userId = $user->save(
-            validator: $create,
-            storage: $this->users,
-        );
+        $userId = $useCase->invoke($inputData);
 
         // 03. Return Response
         return ['id' => $userId];
@@ -102,7 +97,7 @@ class UsersController
     /**
      * 編集
      */
-    public function edit(int $id, Edit $edit)
+    public function edit(int $id, Edit $useCase)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -120,16 +115,10 @@ class UsersController
             'note' => ['string', 'max:200'],
             // 最終更新日時
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]) + [
-            'id' => $id,
-        ];
+        ]);
 
         // 02. Invoke Use Case
-        $user = new User($inputData);
-        $user->save(
-            validator: $edit,
-            storage: $this->users,
-        );
+        $useCase->invoke($id, $inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -138,28 +127,25 @@ class UsersController
     /**
      * パスワード編集
      */
-    public function editPassword(int $id, EditPassword $editPassword)
+    public function editPassword(int $id, EditPassword $useCase)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
             // パスワード
             'password' => ['required', 'min:8', 'max:100'],
-        ]) + [
-            'id' => $id,
-        ];
+        ]);
         $additionalData = $this->request->validate([
             // 現在のパスワード
             'currentPssword' => ['required', 'min:8', 'max:100'],
             // 新しいパスワード（再入力）
             'retypePassword' => ['required', 'min:8', 'max:100'],
         ]);
-        $editPassword->setAdditionalInfo(...$additionalData);
 
         // 02. Invoke Use Case
-        $user = new User($inputData);
-        $user->save(
-            validator: $editPassword,
-            storage: $this->users,
+        $useCase->invoke(
+            $id,
+            ...$inputData,
+            ...$additionalData,
         );
 
         // 03. Return Response
@@ -169,17 +155,13 @@ class UsersController
     /**
      * 削除
      */
-    public function delete(int $id, Delete $delete)
+    public function delete(int $id, Delete $useCase)
     {
         // 01. Validate Request
         $inputData = ['id' => $id];
 
         // 02. Invoke Use Case
-        $user = new User($inputData);
-        $user->save(
-            validator: $delete,
-            storage: $this->users,
-        );
+        $useCase->invoke($id);
 
         // 03. Return Response
         return ['succeed' => true];

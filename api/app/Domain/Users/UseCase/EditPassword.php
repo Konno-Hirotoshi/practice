@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Domain\Users\Validator;
+namespace App\Domain\Users\UseCase;
 
-use App\Base\BaseValidator;
+use App\Base\BaseUseCase;
 use App\Base\CustomException;
 use App\Domain\Users\User;
-use App\Domain\Users\Interface\Validator;
-use App\Storage\Users\Query as Users;
+use App\Storage\Users\Command as Users;
 use App\Service\AuthenticationService;
 
-class EditPassword extends BaseValidator implements Validator
+class EditPassword extends BaseUseCase
 {
     /** @var string 現在のパスワード */
     private readonly string $currentPassword;
@@ -27,11 +26,40 @@ class EditPassword extends BaseValidator implements Validator
     }
 
     /**
+     * ユースケース実行
+     *
+     * @param int $id 役割ID
+     * @param string $password 新しいパスワード
+     * @param string $currentPassword 現在のパスワード
+     * @param string $retypePassword 新しいパスワード(再入力)
+     * 
+     * @return void
+     */
+    public function invoke($id, string $password, string $currentPassword, string $retypePassword): void
+    {
+        $this->currentPassword = $currentPassword;
+        $this->retypePassword = $retypePassword;
+
+        // 01. Restore Entity
+        $updatedAt = $inputData['updated_at'] ?? null;
+        $currentUser = $this->users->getEntity($id, $updatedAt, context: __CLASS__);
+        
+        // 02. Invoke Use Case
+        $user = $currentUser->editPassword($id, $password);
+
+        // 03. Validate Entity
+        $this->validate($user);
+
+        // 04. Store Entity
+        $this->users->save($user, context: __CLASS__);
+    }
+
+    /**
      * バリデーション
      *
      * @param User $user
      */
-    public function validate(User $user)
+    private function validate(User $user)
     {
         // 現在のパスワードが正しいか
         $curentPasswordError = $this->validateCurrentPassword($user->id, $this->currentPassword);
@@ -45,18 +73,6 @@ class EditPassword extends BaseValidator implements Validator
         };
 
         $this->throwIfErrors();
-    }
-
-    /**
-     * 追加情報をセットする
-     *
-     * @param string $currentPassword 現在のパスワード
-     * @param string $retypePassword 新しいパスワード（再入力）
-     */
-    public function setAdditionalInfo(string $currentPassword, $retypePassword): void
-    {
-        $this->currentPassword = $currentPassword;
-        $this->retypePassword = $retypePassword;
     }
 
     /**

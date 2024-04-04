@@ -3,22 +3,21 @@
 namespace App\Storage\Orders;
 
 use App\Base\CustomException;
-use App\Domain\Orders\Interface\Storage;
 use App\Domain\Orders\Order;
-use App\Domain\Orders\Validator\Create;
-use App\Domain\Orders\Validator\Edit;
-use App\Domain\Orders\Validator\Apply;
-use App\Domain\Orders\Validator\Approve;
-use App\Domain\Orders\Validator\Reject;
-use App\Domain\Orders\Validator\Cancel;
-use App\Domain\Orders\Validator\Delete;
+use App\Domain\Orders\UseCase\Create;
+use App\Domain\Orders\UseCase\Edit;
+use App\Domain\Orders\UseCase\Apply;
+use App\Domain\Orders\UseCase\Approve;
+use App\Domain\Orders\UseCase\Reject;
+use App\Domain\Orders\UseCase\Cancel;
+use App\Domain\Orders\UseCase\Delete;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
 /**
  * 取引 - 操作クラス
  */
-class Command extends Query implements Storage
+class Command extends Query
 {
     /**
      * 引数のオブジェクトをストレージへ保存する

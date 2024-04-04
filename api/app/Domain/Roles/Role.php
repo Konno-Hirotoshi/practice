@@ -3,8 +3,6 @@
 namespace App\Domain\Roles;
 
 use App\Base\CustomException;
-use App\Domain\Roles\Interface\Storage;
-use App\Domain\Roles\Interface\Validator;
 
 /**
  * 役割
@@ -44,6 +42,14 @@ readonly class Role
     }
 
     /**
+     * 編集
+     */
+    public function edit(array $inputData)
+    {
+        return new Role(['id' => $this->id] + $inputData);
+    }
+
+    /**
      * エンティティの妥当性を検証する
      */
     private function validate(): array
@@ -60,18 +66,5 @@ readonly class Role
         }
 
         return $validationErrors;
-    }
-
-    /**
-     * エンティティを検証して保存する
-     * 
-     * @param Validator $validator バリデータークラス
-     * @param Storage $storage コマンドクラス
-     * @return mixed
-     */
-    public function save(Validator $validator, Storage $storage): mixed
-    {
-        $validator->validate($this);
-        return $storage->save($this, $validator::class);
     }
 }

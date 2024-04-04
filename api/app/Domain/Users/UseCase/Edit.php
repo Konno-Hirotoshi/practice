@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Domain\Users\Validator;
+namespace App\Domain\Users\UseCase;
 
-use App\Base\BaseValidator;
+use App\Base\BaseUseCase;
 use App\Domain\Users\User;
-use App\Domain\Users\Interface\Validator;
-use App\Storage\Users\Query as Users;
-use App\Storage\Roles\Query as Roles;
 use App\Storage\Departments\Query as Departments;
+use App\Storage\Roles\Query as Roles;
+use App\Storage\Users\Command as Users;
 
 /**
- * 利用者登録
+ * 利用者データ編集
  */
-class Create extends BaseValidator implements Validator
+class Edit extends BaseUseCase
 {
     /**
      * コンストラクタ
@@ -29,45 +28,39 @@ class Create extends BaseValidator implements Validator
     }
 
     /**
+     * ユースケース実行
+     *
+     * @param int $id 役割ID
+     * @param array $inputData 入力パラメータ
+     * @return void
+     */
+    public function invoke($id, array $inputData): void
+    {
+        // 01. Restore Entity
+        $updatedAt = $inputData['updated_at'] ?? null;
+        $currentUser = $this->users->getEntity($id, $updatedAt, context: __CLASS__);
+        
+        // 02. Invoke Use Case
+        $user = $currentUser->edit($inputData);
+
+        // 03. Validate Entity
+        $this->validate($user);
+
+        // 04. Store Entity
+        $this->users->save($user, context: __CLASS__);
+    }
+
+    /**
      * バリデーション
      *
      * @param User $user 利用者エンティティ
      */
-    public function validate(User $user)
+    private function validate(User $user)
     {
-        $this->validateFullName($user);
-        $this->validateEmail($user);
         $this->validateDepartmentId($user);
         $this->validateRoleId($user);
-        $this->throwIfErrors();
     }
-
-    /**
-     * バリデーション：氏名
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateFullName(User $user)
-    {
-        // 氏名がセットされているか
-        if (!isset($user->fullName)) {
-            return $this->setError('fullName', 'unset');
-        }
-    }
-
-    /**
-     * バリデーション：メールアドレス
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateEmail(User $user)
-    {
-        // メールアドレスがセットされているか
-        if (!isset($user->email)) {
-            return $this->setError('email', 'unset');
-        }
-    }
-
+    
     /**
      * バリデーション：部署ID
      *
@@ -77,7 +70,7 @@ class Create extends BaseValidator implements Validator
     {
         // 役割IDがセットされているか
         if (!isset($user->departmentId)) {
-            return $this->setError('departmentId', 'unset');
+            return;
         }
 
         // 部署IDが存在するか
@@ -96,7 +89,7 @@ class Create extends BaseValidator implements Validator
     {
         // 役割IDがセットされているか
         if (!isset($user->roleId)) {
-            return $this->setError('roleId', 'unset');
+            return;
         }
         
         // 役割IDが存在するか

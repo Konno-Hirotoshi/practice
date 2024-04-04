@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Domain\Roles\Validator;
+namespace App\Domain\Roles\UseCase;
 
-use App\Base\BaseValidator;
+use App\Base\BaseUseCase;
 use App\Domain\Roles\Role;
-use App\Domain\Roles\Interface\Validator;
 use App\Storage\Permissions\Query as Permissions;
-use App\Storage\Roles\Query as Roles;
+use App\Storage\Roles\Command as Roles;
 
-class Edit extends BaseValidator implements Validator
+class Edit extends BaseUseCase
 {
     /**
      * コンストラクタ
@@ -23,11 +22,34 @@ class Edit extends BaseValidator implements Validator
     }
 
     /**
+     * ユースケース実行
+     *
+     * @param int $id 役割ID
+     * @param array $inputData 入力パラメータ
+     * @return void
+     */
+    public function invoke($id, array $inputData): void
+    {
+        // 01. Restore Entity
+        $updatedAt = $inputData['updated_at'] ?? null;
+        $currentRole = $this->roles->getEntity($id, $updatedAt, context: __CLASS__);
+        
+        // 02. Invoke Use Case
+        $role = $currentRole->edit($inputData);
+
+        // 03. Validate Entity
+        $this->validate($role);
+
+        // 04. Store Entity
+        $this->roles->save($role, context: __CLASS__);
+    }
+
+    /**
      * バリデーション
      *
      * @param Role $role 役割エンティティ
      */
-    public function validate(Role $role)
+    private function validate(Role $role)
     {
         if (isset($role->name)) {
             // 同名称の役割が存在するか

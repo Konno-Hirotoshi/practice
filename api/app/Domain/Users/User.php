@@ -3,8 +3,6 @@
 namespace App\Domain\Users;
 
 use App\Base\CustomException;
-use App\Domain\Users\Interface\Storage;
-use App\Domain\Users\Interface\Validator;
 
 /**
  * 利用者
@@ -50,6 +48,25 @@ readonly class User
         if ($validationErrors = $this->validate()) {
             throw new CustomException($validationErrors);
         }
+    }
+
+    /**
+     * 編集
+     */
+    public function edit(array $inputData)
+    {
+        return new User(['id' => $this->id] + $inputData);
+    }
+
+    /**
+     * 編集
+     */
+    public function editPassword(string $password)
+    {
+        return new User([
+            'id' => $this->id,
+            'password' => $password,
+        ]);
     }
 
     /**
@@ -107,18 +124,5 @@ readonly class User
         $hasSymbol = preg_match('/[!-\/:-@\[-`{-~]/', $password) === 1;
 
         return ($hasUpperCharacter && $hasLowerCharacter && $hasNumer && $hasSymbol);
-    }
-
-    /**
-     * エンティティを検証して保存する
-     * 
-     * @param Validator $validator 検証クラス
-     * @param Storage $storage 永続化クラス
-     * @return mixed
-     */
-    public function save(Validator $validator, Storage $storage): mixed
-    {
-        $validator->validate($this);
-        return $storage->save($this, $validator::class);
     }
 }

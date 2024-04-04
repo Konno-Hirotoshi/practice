@@ -3,8 +3,6 @@
 namespace App\Domain\Orders;
 
 use App\Base\CustomException;
-use App\Domain\Orders\Interface\Storage;
-use App\Domain\Orders\Interface\Validator;
 
 /**
  * 取引
@@ -54,8 +52,8 @@ readonly class Order
     /** @var array<ApprovalFlow> 承認フロー */
     public array $approvalFlows;
 
-    /** @var string 最終更新日時 */
-    public string $updatedAt;
+    /** @var ?string 最終更新日時 */
+    public ?string $updatedAt;
 
     /**
      * コンストラクタ
@@ -71,6 +69,138 @@ readonly class Order
         if ($validationErrors = $this->validate()) {
             throw new CustomException($validationErrors);
         }
+    }
+
+    /**
+     * 編集
+     */
+    public function edit(array $inputData)
+    {
+        // 編集可能であること (承認フローが進行中や承認済みでは無い)
+        if (!$this->isEditable()) {
+            throw new CustomException('not_editable');
+        }
+
+        return new Order(['id' => $this->id] + $inputData);
+    }
+
+    /**
+     * 承認フロー：申請
+     */
+    public function apply()
+    {
+        // 編集可能であること (承認フローが進行中や承認済みでは無い)
+        if (!$this->isEditable()) {
+            throw new CustomException('not_editable');
+        }
+
+        return new Order([
+            'id' => $this->id,
+            // 承認ステータス：申請中
+            'approvalStatus' => Order::APPROVAL_STATUS_APPLY,
+            // 承認フロー
+            'approvalFlows' => [
+                new ApprovalFlow(['orderId' => $this->id, 'sequenceNo' => 1, 'approvalUserId' => 1, 'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_NONE]),
+                new ApprovalFlow(['orderId' => $this->id, 'sequenceNo' => 2, 'approvalUserId' => 1, 'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_NONE]),
+                new ApprovalFlow(['orderId' => $this->id, 'sequenceNo' => 3, 'approvalUserId' => 1, 'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_NONE]),
+            ],
+            // 最終更新日時
+            'updatedAt' => $this->updatedAt,
+        ]);
+    }
+
+    /**
+     * 承認フロー：承認
+     */
+    public function approve(int $sequenceNo, int $approvalUserId)
+    {
+        // 承認全体のステータスチェック
+        if (!$this->isApprovalFlowInProgress()) {
+            throw new CustomException('not_in_progress');
+        }
+
+        // シーケンス番号チェック
+        if (!$this->isCurrentSequenceNo($sequenceNo)) {
+            throw new CustomException('wrong_sequence_no');
+        }
+
+        // 指定シーケンス番号の承認者チェック
+        if (!$this->isCurrentApprovalUserId($approvalUserId)) {
+            throw new CustomException('wrong_approval_user');
+        }
+
+        return new Order([
+            'id' => $this->id,
+            // 承認ステータス：承認 or 申請中 (一次承認済み)
+            'approvalStatus' => $this->getNextApprovalStatus($sequenceNo),
+            // 承認フロー
+            'approvalFlows' => [
+                new ApprovalFlow([
+                    'orderId' => $this->id,
+                    'sequenceNo' => $sequenceNo,
+                    'approvalUserId' => $approvalUserId,
+                    'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_APPROVE,
+                    'approvalDate' => date('Y-m-d H:i:s'),
+                ]),
+            ],
+            // 最終更新日時
+            'updatedAt' => $this->updatedAt,
+        ]);
+    }
+
+    /**
+     * 承認フロー：却下
+     */
+    public function reject(int $sequenceNo, int $approvalUserId)
+    {
+        // 承認全体のステータスチェック
+        if (!$this->isApprovalFlowInProgress()) {
+            throw new CustomException('not_in_progress');
+        }
+
+        // シーケンス番号チェック
+        if (!$this->isCurrentSequenceNo($sequenceNo)) {
+            throw new CustomException('wrong_sequence_no');
+        }
+
+        // 指定シーケンス番号の承認者チェック
+        if (!$this->isCurrentApprovalUserId($approvalUserId)) {
+            throw new CustomException('deny_user');
+        }
+
+        return new Order([
+            'id' => $this->id,
+            // 承認ステータス：却下
+            'approvalStatus' => self::APPROVAL_STATUS_REJECT,
+            // 承認フロー
+            'approvalFlows' => [
+                new ApprovalFlow([
+                    'orderId' => $this->id,
+                    'sequenceNo' => $sequenceNo,
+                    'approvalUserId' => $approvalUserId,
+                    'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_REJECT,
+                    'approvalDate' => date('Y-m-d H:i:s'),
+                ]),
+            ],
+            // 最終更新日時
+            'updatedAt' => $this->updatedAt,
+        ]);
+    }
+
+    /**
+     * 承認フロー：取消
+     */
+    public function cancel()
+    {
+        return new Order([
+            'id' => $this->id,
+            // 承認ステータス：取り消し
+            'approvalStatus' => self::APPROVAL_STATUS_CANCEL,
+            // 承認フロー
+            'approvalFlows' => [],
+            // 最終更新日時
+            'updatedAt' => $this->updatedAt,
+        ]);
     }
 
     /**
@@ -108,93 +238,6 @@ readonly class Order
     }
 
     /**
-     * 承認フロー：申請
-     */
-    public function apply()
-    {
-    }
-
-    /**
-     * 承認フロー：承認
-     */
-    public function approve(int $sequenceNo, int $approvalUserId)
-    {
-        // 承認全体のステータスチェック
-        if (!$this->isApprovalFlowInProgress()) {
-            throw new CustomException('not_in_progress');
-        }
-
-        // シーケンス番号チェック
-        if (!$this->isCurrentSequenceNo($sequenceNo)) {
-            throw new CustomException('wrong_sequence_no');
-        }
-
-        // 指定シーケンス番号の承認者チェック
-        if (!$this->isCurrentApprovalUserId($approvalUserId)) {
-            throw new CustomException('deny_user');
-        }
-
-        return new Order([
-            'id' => $this->id,
-            'approvalStatus' => $this->getNextApprovalStatus($sequenceNo),
-            'approvalFlows' => [
-                new ApprovalFlow([
-                    'orderId' => $this->id,
-                    'sequenceNo' => $sequenceNo,
-                    'approvalUserId' => $approvalUserId,
-                    'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_APPROVE,
-                    'approvalDate' => date('Y-m-d H:i:s'),
-                ]),
-            ],
-        ]);
-    }
-
-    /**
-     * 承認フロー：却下
-     */
-    public function reject(int $sequenceNo, int $approvalUserId)
-    {
-        // 承認全体のステータスチェック
-        if (!$this->isApprovalFlowInProgress()) {
-            throw new CustomException('not_in_progress');
-        }
-
-        // シーケンス番号チェック
-        if (!$this->isCurrentSequenceNo($sequenceNo)) {
-            throw new CustomException('wrong_sequence_no');
-        }
-
-        // 指定シーケンス番号の承認者チェック
-        if (!$this->isCurrentApprovalUserId($approvalUserId)) {
-            throw new CustomException('deny_user');
-        }
-
-        return new Order([
-            'id' => $this->id,
-            'approvalStatus' => self::APPROVAL_STATUS_REJECT,
-            'approvalFlows' => [
-                new ApprovalFlow([
-                    'orderId' => $this->id,
-                    'sequenceNo' => $sequenceNo,
-                    'approvalUserId' => $approvalUserId,
-                    'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_REJECT,
-                    'approvalDate' => date('Y-m-d H:i:s'),
-                ]),
-            ],
-        ]);
-    }
-
-    /**
-     * 承認フローの指定行が承認された場合の承認ステータス
-     */
-    private function getNextApprovalStatus(int $sequenceNo)
-    {
-        return $this->isFinalSequenceNo($sequenceNo)
-            ? self::APPROVAL_STATUS_APPROVE
-            : self::APPROVAL_STATUS_IN_PROGRESS;
-    }
-
-    /**
      * 編集可能な状態か
      */
     public function isEditable()
@@ -209,7 +252,7 @@ readonly class Order
     /**
      * 承認フローが進行中か
      */
-    public function isApprovalFlowInProgress()
+    private function isApprovalFlowInProgress()
     {
         return in_array($this->approvalStatus, [
             self::APPROVAL_STATUS_APPLY,
@@ -220,37 +263,47 @@ readonly class Order
     /**
      * 承認フローの一番最後のシーケンス番号か
      */
-    public function isFinalSequenceNo($sequenceNo)
+    private function isFinalSequenceNo($sequenceNo)
     {
         return count($this->approvalFlows) === $sequenceNo;
     }
 
     /**
-     * 現在承認・却下を待っている行のシーケンス番号か
+     * 承認された場合の次の承認ステータス
      */
-    public function isCurrentSequenceNo($sequenceNo)
+    private function getNextApprovalStatus(int $sequenceNo)
+    {
+        return $this->isFinalSequenceNo($sequenceNo)
+            ? self::APPROVAL_STATUS_APPROVE
+            : self::APPROVAL_STATUS_IN_PROGRESS;
+    }
+
+    /**
+     * 現在承認・却下待ちの行のシーケンス番号か
+     */
+    private function isCurrentSequenceNo($sequenceNo)
     {
         $current = $this->getCurrentApprovalFlow();
         if ($current === null) {
             return false;
         }
-        return $current->sequenceNo === $sequenceNo;;
+        return $current->sequenceNo === $sequenceNo;
     }
 
     /**
-     * 現在承認・却下を待っている行の承認者か
+     * 現在承認・却下待ちの行の承認者か
      */
-    public function isCurrentApprovalUserId($approvalUserId)
+    private function isCurrentApprovalUserId($approvalUserId)
     {
         $current = $this->getCurrentApprovalFlow();
         if ($current === null) {
             return false;
         }
-        return $current->approvalUserId === $approvalUserId;;
+        return $current->approvalUserId === $approvalUserId;
     }
 
     /**
-     * 承認フローの中で承認・却下をしていない行を取得する
+     * 承認フローの中で承認・却下をしていない最初の行を取得する
      */
     private function getCurrentApprovalFlow()
     {
@@ -260,18 +313,5 @@ readonly class Order
             }
         }
         return null;
-    }
-
-    /**
-     * エンティティを検証して保存する
-     * 
-     * @param Validator $validator バリデータークラス
-     * @param Storage $storage コマンドクラス
-     * @return mixed
-     */
-    public function save(Validator $validator, Storage $storage): mixed
-    {
-        $validator->validate($this);
-        return $storage->save($this, $validator::class);
     }
 }

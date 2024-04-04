@@ -3,18 +3,17 @@
 namespace App\Storage\Roles;
 
 use App\Base\CustomException;
-use App\Domain\Roles\Interface\Storage;
 use App\Domain\Roles\Role;
-use App\Domain\Roles\Validator\Create;
-use App\Domain\Roles\Validator\Delete;
-use App\Domain\Roles\Validator\Edit;
+use App\Domain\Roles\UseCase\Create;
+use App\Domain\Roles\UseCase\Delete;
+use App\Domain\Roles\UseCase\Edit;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
 /**
  * 役割 - 操作クラス
  */
-class Command extends Query implements Storage
+class Command extends Query
 {
     /**
      * 引数のオブジェクトをストレージへ保存する

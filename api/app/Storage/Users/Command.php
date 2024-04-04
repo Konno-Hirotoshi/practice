@@ -4,18 +4,17 @@ namespace App\Storage\Users;
 
 use App\Base\CustomException;
 use App\Domain\Users\User;
-use App\Domain\Users\Interface\Storage;
-use App\Domain\Users\Validator\Create;
-use App\Domain\Users\Validator\Delete;
-use App\Domain\Users\Validator\Edit;
-use App\Domain\Users\Validator\EditPassword;
+use App\Domain\Users\UseCase\Create;
+use App\Domain\Users\UseCase\Delete;
+use App\Domain\Users\UseCase\Edit;
+use App\Domain\Users\UseCase\EditPassword;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
 /**
  * 利用者 - 操作クラス
  */
-class Command extends Query implements Storage
+class Command extends Query
 {
     /**
      * 引数のオブジェクトをストレージへ保存する

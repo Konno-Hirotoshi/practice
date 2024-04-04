@@ -2,11 +2,10 @@
 
 namespace App\Controller;
 
-use App\Domain\Roles\Role;
 use App\Domain\Roles\RoleCollection;
-use App\Domain\Roles\Validator\Create;
-use App\Domain\Roles\Validator\Delete;
-use App\Domain\Roles\Validator\Edit;
+use App\Domain\Roles\UseCase\Create;
+use App\Domain\Roles\UseCase\Delete;
+use App\Domain\Roles\UseCase\Edit;
 use App\Storage\Roles\Command;
 use Illuminate\Http\Request;
 
@@ -65,7 +64,7 @@ class RolesController
     /**
      * 新規作成
      */
-    public function create(Create $create)
+    public function create(Create $useCase)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -82,11 +81,7 @@ class RolesController
         ];
 
         // 02. Invoke Use Case
-        $role = new Role($inputData);
-        $roleId = $role->save(
-            validator: $create,
-            storage: $this->roles,
-        );
+        $roleId = $useCase->invoke($inputData);
 
         // 03. Return Response
         return ['id' => $roleId];
@@ -95,7 +90,7 @@ class RolesController
     /**
      * 編集
      */
-    public function edit(int $id, Edit $edit)
+    public function edit(int $id, Edit $useCase)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -113,11 +108,7 @@ class RolesController
         ];
 
         // 02. Invoke Use Case
-        $role = new Role($inputData);
-        $role->save(
-            validator: $edit,
-            storage: $this->roles,
-        );
+        $useCase->invoke($id, $inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -126,17 +117,13 @@ class RolesController
     /**
      * 削除
      */
-    public function delete(int $id, Delete $delete)
+    public function delete(int $id, Delete $useCase)
     {
         // 01. Validate Request
-        $inputData = ['id' => $id];
+        // (NOP)
 
         // 02. Invoke Use Case
-        $role = new Role($inputData);
-        $role->save(
-            validator: $delete,
-            storage: $this->roles,
-        );
+        $useCase->invoke($id);
 
         // 03. Return Response
         return ['succeed' => true];

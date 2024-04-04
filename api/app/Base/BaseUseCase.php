@@ -2,7 +2,7 @@
 
 namespace App\Base;
 
-abstract class BaseValidator
+abstract class BaseUseCase
 {
     private $validationErrors = [];
 

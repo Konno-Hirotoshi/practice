@@ -204,6 +204,14 @@ readonly class Order
     }
 
     /**
+     * 削除
+     */
+    public function delete()
+    {
+        return $this;
+    }
+
+    /**
      * エンティティの妥当性を検証する
      */
     private function validate(): array

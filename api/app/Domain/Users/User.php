@@ -33,7 +33,6 @@ readonly class User
     /** @var string 最終更新日時 */
     public string $updatedAt;
 
-
     /**
      * コンストラクタ
      *
@@ -59,7 +58,7 @@ readonly class User
     }
 
     /**
-     * 編集
+     * パスワード編集
      */
     public function editPassword(string $password)
     {
@@ -67,6 +66,14 @@ readonly class User
             'id' => $this->id,
             'password' => $password,
         ]);
+    }
+
+    /**
+     * 削除
+     */
+    public function delete()
+    {
+        return $this;
     }
 
     /**

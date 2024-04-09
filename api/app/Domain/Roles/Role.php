@@ -9,6 +9,9 @@ use App\Base\CustomException;
  */
 readonly class Role
 {
+    /** 全権限ロールID */
+    const int SUPER_ROLE_ID = 1;
+
     /** @var int $id ID */
     public ?int $id;
 
@@ -23,7 +26,6 @@ readonly class Role
 
     /** @var string $updatedAt 最終更新日時 */
     public string $updatedAt;
-
 
     /**
      * コンストラクタ
@@ -50,14 +52,37 @@ readonly class Role
     }
 
     /**
+     * 削除
+     */
+    public function delete()
+    {
+        // 全権限ロールか
+        if ($this->isSuperRole()) {
+            throw new CustomException('super_role');
+        }
+
+        return $this;
+    }
+
+    /**
      * エンティティの妥当性を検証する
      */
     private function validate(): array
     {
         $validationErrors = [];
 
+        // 名称
+        if (isset($this->name)) {
+            // 空欄でないこと
+            if ($this->name === '') {
+                $validationErrors['name'] = 'empty';
+            }
+        }
+
+        // 選択された権限のリスト
         if (isset($this->permissionIds)) {
             foreach ($this->permissionIds as $permissionId) {
+                // 数値であること
                 if (!is_int($permissionId)) {
                     $validationErrors['permission_ids'] = 'format';
                     break;
@@ -66,5 +91,15 @@ readonly class Role
         }
 
         return $validationErrors;
+    }
+
+    /**
+     * 全権限ロールIDか
+     * 
+     * @return bool
+     */
+    private function isSuperRole(): bool
+    {
+        return $this->id === self::SUPER_ROLE_ID;
     }
 }

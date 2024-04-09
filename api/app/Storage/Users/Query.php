@@ -4,9 +4,6 @@ namespace App\Storage\Users;
 
 use App\Base\CustomException;
 use App\Base\SearchOption;
-use App\Domain\Users\UseCase\Delete;
-use App\Domain\Users\UseCase\Edit;
-use App\Domain\Users\UseCase\EditPassword;
 use App\Domain\Users\User;
 use Illuminate\Support\Facades\DB;
 

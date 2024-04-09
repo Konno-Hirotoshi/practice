@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Domain\Users\Support;
+
+use App\Base\BaseValidator;
+use App\Domain\Users\User;
+use App\Storage\Departments\Query as Departments;
+use App\Storage\Roles\Query as Roles;
+use App\Storage\Users\Command as Users;
+
+/**
+ * 利用者 - 編集時ビジネスルール
+ */
+class EditRule extends BaseValidator
+{
+    /**
+     * コンストラクタ
+     *
+     * @param Users $users 役割
+     * @param Roles $roles 権限
+     * @param Departments $departments 部署
+     */
+    private function __construct(
+        private Users $users,
+        private Roles $roles,
+        private Departments $departments,
+    ) {
+    }
+
+    /**
+     * バリデーション
+     *
+     * @param User $user 利用者エンティティ
+     */
+    public function validate(User $user)
+    {
+        $this->validateFullName($user);
+        $this->validateEmail($user);
+        $this->validateDepartmentId($user);
+        $this->validateRoleId($user);
+        $this->throwIfErrors();
+    }
+
+    /**
+     * バリデーション：氏名
+     *
+     * @param User $user 利用者エンティティ
+     */
+    private function validateFullName(User $user)
+    {
+        // 氏名がセットされているか
+        if (!isset($user->fullName)) {
+            return;
+        }
+    }
+
+    /**
+     * バリデーション：メールアドレス
+     *
+     * @param User $user 利用者エンティティ
+     */
+    private function validateEmail(User $user)
+    {
+        // メールアドレスがセットされているか
+        if (!isset($user->email)) {
+            return;
+        }
+
+        // 同じメールアドレスが使用されていないか
+    }
+
+    /**
+     * バリデーション：部署ID
+     *
+     * @param User $user 利用者エンティティ
+     */
+    private function validateDepartmentId(User $user)
+    {
+        // 役割IDがセットされているか
+        if (!isset($user->departmentId)) {
+            return;
+        }
+
+        // 部署IDが存在するか
+        if (!$this->departments->exists($user->departmentId)) {
+            $this->setError('departmentId', 'not_found');
+        };
+    }
+
+    /**
+     * バリデーション：役割ID
+     *
+     * @param User $user 利用者エンティティ
+     */
+    private function validateRoleId(User $user)
+    {
+        // 役割IDがセットされているか
+        if (!isset($user->roleId)) {
+            return;
+        }
+        
+        // 役割IDが存在するか
+        if (!$this->roles->exists($user->roleId)) {
+            $this->setError('roleId', 'not_found');
+        }
+    }
+}

@@ -99,32 +99,15 @@ class RoleUseCase extends BaseUseCase
     public function delete(int $id, $updatedAt = null)
     {
         $role = $this->roles
-            ->getEntity($id, $updatedAt, context: __METHOD__);
+            ->getEntity($id, $updatedAt, context: __METHOD__)
+            ->delete();
 
-        // 全権限ロールが含まれているか
-        $isIncludedSuperRole = $this->isIncludedSuperRole($role->id);
-        if ($isIncludedSuperRole) {
-            $this->throw('super_role');
-        }
-
-        // ユーザーに割り当てられているか
-        $isAssignToUsers = $this->isAssignToUsers($role->id);
-        if ($isAssignToUsers) {
+        // 権限が利用者に割り当てられているか
+        if ($this->isAssignToUsers($role->id)) {
             $this->throw('role_assigned');
         }
 
         $this->roles->save($role, context: __METHOD__);
-    }
-
-    /**
-     * 全権限ロールが含まれているか
-     * 
-     * @param int $roleId
-     * @return bool
-     */
-    private function isIncludedSuperRole(int $roleId): bool
-    {
-        return $roleId === Roles::SUPER_ROLE_ID;
     }
 
     /**

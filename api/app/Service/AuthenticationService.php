@@ -64,6 +64,28 @@ final class AuthenticationService
     }
 
     /**
+     * 利用者パスワード認証を行い、認証に失敗した場合はエラーコードを返却する
+     * 
+     * @param int $userId 利用者ID
+     * @param string $password パスワード
+     * @return ?string
+     */
+    public function getErrorCode(int $userId, string $password): ?string
+    {
+        try {
+            $email = $this->users->getEmailById($userId);
+            $this->authenticate($email, $password);
+            return null;
+        } catch (CustomException $e) {
+            return match ($e->errors()['reason']) {
+                'record_not_found' => 'not_equal',
+                'empty' => 'not_equal',
+                'locked' => 'locked',
+                'failure' => 'not_equal',
+            };
+        }
+    }
+    /**
      * 指定されたメールアドレスがロックされているかどうか
      * 
      * @param string $email

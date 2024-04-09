@@ -3,14 +3,13 @@
 namespace App\Domain\Users;
 
 use App\Base\BaseUseCase;
-use App\Base\CustomException;
-use App\Storage\Departments\Query as Departments;
-use App\Storage\Roles\Query as Roles;
+use App\Domain\Users\Support\CreateRule;
+use App\Domain\Users\Support\EditRule;
 use App\Storage\Users\Command as Users;
 use App\Service\AuthenticationService;
 
 /**
- * 役割 - ユースケースクラス
+ * 利用者 - ユースケースクラス
  */
 class UserUseCase extends BaseUseCase
 {
@@ -18,14 +17,15 @@ class UserUseCase extends BaseUseCase
      * コンストラクタ
      *
      * @param Users $users 役割
-     * @param Roles $roles 権限
-     * @param Departments $departments 部署
+     * @param AuthenticationService $authenticationService 認証サービス
+     * @param CreateRule $createRule 新規作成時ビジネスルール
+     * @param EditRule $editRule 編集時ビジネスルール
      */
     public function __construct(
         private Users $users,
-        private Roles $roles,
-        private Departments $departments,
         private AuthenticationService $authenticationService,
+        private CreateRule $createRule,
+        private EditRule $editRule,
     ) {
     }
 
@@ -39,23 +39,16 @@ class UserUseCase extends BaseUseCase
     {
         $user = new User($inputData);
 
-        $this->validateFullName($user);
-        $this->validateEmail($user);
-        $this->validateDepartmentId($user);
-        $this->validateRoleId($user);
-        $this->throwIfErrors();
+        $this->createRule->validate($user);
 
-        return $this->users->save(
-            user: $user,
-            context: __METHOD__,
-        );
+        return $this->users->save(user: $user, context: __METHOD__);
     }
 
     /**
      * 編集
      *
-     * @param int $id 役割ID
-     * @param array $inputData 入力パラメータ
+     * @param int $id 利用者ID
+     * @param array $inputData 入力データ
      * @return void
      */
     public function edit($id, array $inputData): void
@@ -64,39 +57,31 @@ class UserUseCase extends BaseUseCase
             ->getEntity($id, $inputData['updated_at'] ?? null, context: __METHOD__)
             ->edit($inputData);
 
-        $this->validateDepartmentId($user);
-        $this->validateRoleId($user);
-        $this->throwIfErrors();
-        
+        $this->editRule->validate($user);
+
         $this->users->save($user, context: __METHOD__);
     }
 
     /**
      * パスワード編集
      *
-     * @param int $id 役割ID
+     * @param int $id 利用者ID
      * @param string $password 新しいパスワード
      * @param string $currentPassword 現在のパスワード
-     * @param string $retypePassword パスワード再入力
      * @param string $updatedAt 最終更新日時
      * @return void
      */
-    public function editPassword($id, string $password, string $currentPassword, string $retypePassword, $updatedAt = null): void
+    public function editPassword($id, string $password, string $currentPassword, $updatedAt = null): void
     {
         $user = $this->users
             ->getEntity($id, $updatedAt, context: __METHOD__)
             ->editPassword($password);
 
         // 現在のパスワードが正しいか
-        $curentPasswordError = $this->validateCurrentPassword($user->id, $currentPassword);
-        if ($curentPasswordError) {
-            $this->setError('current_password', $curentPasswordError);
+        if ($errorCode = $this->authenticationService->getErrorCode($id, $currentPassword)) {
+            $this->setError('currentPassword', $errorCode);
         }
 
-        // 新しいパスワード（再入力）が一致するか
-        if ($user->password !== $retypePassword) {
-            $this->setError('retype_password', 'not-equal');
-        };
         $this->throwIfErrors();
 
         $this->users->save($user, context: __METHOD__);
@@ -105,98 +90,16 @@ class UserUseCase extends BaseUseCase
     /**
      * 削除
      *
-     * @param int $id 役割ID
+     * @param int $id 利用者ID
      * @param string $updatedAt 最終更新日時
      * @return void
      */
     public function delete(int $id, $updatedAt = null)
     {
         $user = $this->users
-            ->getEntity($id, $updatedAt, context: __METHOD__);
+            ->getEntity($id, $updatedAt, context: __METHOD__)
+            ->delete();
 
         $this->users->save($user, context: __METHOD__);
-    }
-
-
-    /**
-     * バリデーション：氏名
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateFullName(User $user)
-    {
-        // 氏名がセットされているか
-        if (!isset($user->fullName)) {
-            return $this->setError('fullName', 'unset');
-        }
-    }
-
-    /**
-     * バリデーション：メールアドレス
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateEmail(User $user)
-    {
-        // メールアドレスがセットされているか
-        if (!isset($user->email)) {
-            return $this->setError('email', 'unset');
-        }
-    }
-
-    /**
-     * バリデーション：部署ID
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateDepartmentId(User $user)
-    {
-        // 役割IDがセットされているか
-        if (!isset($user->departmentId)) {
-            return $this->setError('departmentId', 'unset');
-        }
-
-        // 部署IDが存在するか
-        $existsDepartmentId = $this->departments->exists($user->departmentId);
-        if (!$existsDepartmentId) {
-            $this->setError('departmentId', 'not_found');
-        };
-    }
-
-    /**
-     * バリデーション：役割ID
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateRoleId(User $user)
-    {
-        // 役割IDがセットされているか
-        if (!isset($user->roleId)) {
-            return;
-        }
-        
-        // 役割IDが存在するか
-        $existsRoleId = $this->roles->exists($user->roleId);
-        if (!$existsRoleId) {
-            $this->setError('roleId', 'not_found');
-        }
-    }
-    /**
-     * バリデーションチェック: 現在のパスワード
-     */
-    private function validateCurrentPassword(int $id, string $password): string|false
-    {
-        try {
-            $email = $this->users->getEmailById($id);
-            $this->authenticationService->authenticate($email, $password);
-        } catch (CustomException $e) {
-            return match ($e->errors()['reason']) {
-                'record_not_found' => 'not_equal',
-                'empty' => 'not_equal',
-                'locked' => 'locked',
-                'failure' => 'not_equal',
-            };
-        }
-        return false;
     }
 }

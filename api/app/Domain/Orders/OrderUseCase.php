@@ -129,7 +129,8 @@ class OrderUseCase extends BaseUseCase
     public function delete(int $id, $updatedAt = null)
     {
         $order = $this->orders
-            ->getEntity($id, $updatedAt, context: __METHOD__);
+            ->getEntity($id, $updatedAt, context: __METHOD__)
+            ->delete();
 
         $this->orders->save($order, context: __METHOD__);
     }

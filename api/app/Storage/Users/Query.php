@@ -5,6 +5,7 @@ namespace App\Storage\Users;
 use App\Base\CustomException;
 use App\Base\SearchOption;
 use App\Domain\Users\User;
+use App\Domain\Users\UserUseCase;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -120,12 +121,12 @@ class Query
     public function getEntity(int $id, ?string $updatedAt = null, ?string $context = null): User
     {
         // contextに応じたカラムのみ取得する
-        $dto = DB::table('roles')
+        $dto = DB::table('users')
             ->where('id', $id)
             ->first(match ($context) {
-                'edit' => ['id', 'updated_at'],
-                'editPassword' => ['id', 'password', 'updated_at'],
-                'delete' => ['id', 'updated_at'],
+                UserUseCase::class . '::edit' => ['id', 'updated_at'],
+                UserUseCase::class . '::editPassword' => ['id', 'password', 'updated_at'],
+                UserUseCase::class . '::delete' => ['id', 'updated_at'],
             });
 
         // レコードが存在しなければエラーとする

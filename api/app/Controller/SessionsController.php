@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
  */
 class SessionsController
 {
+    /** セッションキー名称 */
+    const SESSION_KEY = 's';
+
     /**
      * コンストラクタ
      */
@@ -22,7 +25,7 @@ class SessionsController
         private AuthorizationService $authorizationService,
         private SessionService $sessionService,
     ) {
-        $sessionKey = $this->request->cookie('key');
+        $sessionKey = $this->request->cookie(self::SESSION_KEY);
         $this->sessionService->delete($sessionKey);
     }
 
@@ -53,7 +56,7 @@ class SessionsController
             'permissions' => $this->authorizationService->getFrontendPaths($user->role_id),
         ];
 
-        return (new JsonResponse($body))->withCookie('key', $sessionKey);
+        return (new JsonResponse($body))->withCookie(self::SESSION_KEY, $sessionKey);
     }
 
     /**
@@ -61,6 +64,6 @@ class SessionsController
      */
     public function logout()
     {
-        return (new JsonResponse(['succeed' => true]))->withoutCookie('key');
+        return (new JsonResponse(['succeed' => true]))->withoutCookie(self::SESSION_KEY);
     }
 }

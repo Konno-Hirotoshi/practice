@@ -20,7 +20,7 @@ class EditRule extends BaseValidator
      * @param Roles $roles 権限
      * @param Departments $departments 部署
      */
-    private function __construct(
+    public function __construct(
         private Users $users,
         private Roles $roles,
         private Departments $departments,

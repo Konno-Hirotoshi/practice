@@ -96,7 +96,7 @@ class Query
             ->where('id', $id)
             ->first(match ($context) {
                 RoleUseCase::class . '::edit' => ['id', 'name', 'note', 'updated_at'],
-                'delete' => ['id', 'updated_at'],
+                RoleUseCase::class . '::delete' => ['id', 'updated_at'],
             });
 
         // レコードが存在しなければエラーとする

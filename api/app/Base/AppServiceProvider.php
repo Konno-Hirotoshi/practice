@@ -18,7 +18,7 @@ class AppServiceProvider extends BaseServiceProvider
     public function boot()
     {
         $this->app['auth']->viaRequest('custom', function ($request) {
-            $sessionKey = $request->cookie('key');
+            $sessionKey = $request->cookie('s');
             $session = app(SessionService::class)->restore($sessionKey);
             if ($session === null) {
                 return;

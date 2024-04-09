@@ -7,12 +7,7 @@ use App\Base\SearchOption;
 use App\Domain\Orders\ApprovalFlow;
 use App\Domain\Orders\Order;
 use App\Domain\Orders\OrderCollection;
-use App\Domain\Orders\UseCase\Edit;
-use App\Domain\Orders\UseCase\Apply;
-use App\Domain\Orders\UseCase\Approve;
-use App\Domain\Orders\UseCase\Reject;
-use App\Domain\Orders\UseCase\Cancel;
-use App\Domain\Orders\UseCase\Delete;
+use App\Domain\Orders\OrderUseCase;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -113,12 +108,12 @@ class Query
                     'approval_status',
                     'updated_at'
                 ],
-                'edit' => ['id', 'approval_status', 'updated_at'],
-                'apply' => ['id', 'approval_status', 'updated_at'],
-                'approve' => ['id', 'approval_status', 'updated_at'],
-                'reject' => ['id', 'approval_status', 'updated_at'],
-                'cancel' => ['id', 'updated_at'],
-                'delete' => ['id', 'updated_at'],
+                OrderUseCase::class . '::edit' => ['id', 'approval_status', 'updated_at'],
+                OrderUseCase::class . '::apply' => ['id', 'approval_status', 'updated_at'],
+                OrderUseCase::class . '::approve' => ['id', 'approval_status', 'updated_at'],
+                OrderUseCase::class . '::reject' => ['id', 'approval_status', 'updated_at'],
+                OrderUseCase::class . '::cancel' => ['id', 'updated_at'],
+                OrderUseCase::class . '::delete' => ['id', 'updated_at'],
             });
 
         // レコードが存在しなければエラーとする
@@ -133,7 +128,11 @@ class Query
 
         // 承認フローを必要とするcontextなら承認フローを取得する
         $approvalFlowEntitites = null;
-        if (in_array($context, [OrderCollection::class, 'apply', 'approve', 'reject'])) {
+        if (in_array($context, [
+            OrderUseCase::class . '::apply',
+            OrderUseCase::class . '::approve',
+            OrderUseCase::class . '::reject'
+        ])) {
             $approvalFlowEntitites = $this->getApprovalFlowEntities($id);
         }
 

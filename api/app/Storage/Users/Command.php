@@ -4,6 +4,7 @@ namespace App\Storage\Users;
 
 use App\Base\CustomException;
 use App\Domain\Users\User;
+use App\Domain\Users\UserUseCase;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
@@ -18,10 +19,10 @@ class Command extends Query
     public function save(User $user, string $context)
     {
         return match ($context) {
-            'create' => $this->create($user),
-            'edit' => $this->edit($user),
-            'editPassword' => $this->editPassword($user),
-            'delete' => $this->delete($user),
+            UserUseCase::class . '::create' => $this->create($user),
+            UserUseCase::class . '::edit' => $this->edit($user),
+            UserUseCase::class . '::editPassword' => $this->editPassword($user),
+            UserUseCase::class . '::delete' => $this->delete($user),
         };
     }
 

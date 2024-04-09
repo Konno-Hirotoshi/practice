@@ -4,6 +4,7 @@ namespace App\Storage\Roles;
 
 use App\Base\CustomException;
 use App\Domain\Roles\Role;
+use App\Domain\Roles\RoleUseCase;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
@@ -18,9 +19,9 @@ class Command extends Query
     public function save(Role $role, string $context)
     {
         return match ($context) {
-            'create' => $this->create($role),
-            'edit' => $this->edit($role),
-            'delete' => $this->delete($role),
+            RoleUseCase::class . '::create' => $this->create($role),
+            RoleUseCase::class . '::edit' => $this->edit($role),
+            RoleUseCase::class . '::delete' => $this->delete($role),
         };
     }
 

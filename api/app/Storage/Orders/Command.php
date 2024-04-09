@@ -4,6 +4,7 @@ namespace App\Storage\Orders;
 
 use App\Base\CustomException;
 use App\Domain\Orders\Order;
+use App\Domain\Orders\OrderUseCase;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
@@ -18,13 +19,13 @@ class Command extends Query
     public function save(Order $order, string $context)
     {
         return match ($context) {
-            'create' => $this->create($order),
-            'edit' => $this->edit($order),
-            'apply' => $this->apply($order),
-            'approve' => $this->updateApprovalFlow($order),
-            'reject' => $this->updateApprovalFlow($order),
-            'cancel' => $this->updateApprovalFlow($order),
-            'delete' => $this->delete($order),
+            OrderUseCase::class . '::create' => $this->create($order),
+            OrderUseCase::class . '::edit' => $this->edit($order),
+            OrderUseCase::class . '::apply' => $this->apply($order),
+            OrderUseCase::class . '::approve' => $this->updateApprovalFlow($order),
+            OrderUseCase::class . '::reject' => $this->updateApprovalFlow($order),
+            OrderUseCase::class . '::cancel' => $this->updateApprovalFlow($order),
+            OrderUseCase::class . '::delete' => $this->delete($order),
         };
     }
 

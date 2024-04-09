@@ -208,6 +208,12 @@ readonly class Order
      */
     public function delete()
     {
+        // 承認全体のステータスチェック
+        // 承認フロー進行中は削除不可
+        if ($this->isApprovalFlowInProgress()) {
+            throw new CustomException('in_progress');
+        }
+
         return $this;
     }
 

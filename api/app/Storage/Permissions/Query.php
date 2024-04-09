@@ -2,8 +2,6 @@
 
 namespace App\Storage\Permissions;
 
-use Illuminate\Support\Facades\DB;
-
 /**
  * 権限 - 問い合わせクラス
  */

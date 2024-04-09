@@ -9,9 +9,10 @@ use App\Storage\Sessions\Command as Sessions;
  */
 class SessionService
 {
-    /**
-     * セッションの有効期限 (秒)
-     */
+    /** セッションキー名称 */
+    const SESSION_KEY = 's';
+
+    /** セッションの有効期限 (秒) */
     public const SESSION_LIFETIME = 1800;
 
     /**

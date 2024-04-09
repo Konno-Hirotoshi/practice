@@ -6,7 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Auth\Authenticatable;
 use JsonSerializable;
 
-class User implements AuthenticatableContract, JsonSerializable
+readonly class User implements AuthenticatableContract, JsonSerializable
 {
     use Authenticatable;
 
@@ -14,11 +14,11 @@ class User implements AuthenticatableContract, JsonSerializable
      * Create a new user instance.
      *
      * @param int $id
-     * @return void
+     * @param int $departmentId
      */
     public function __construct(
-        readonly public int $id,
-        readonly public int $departmentId,
+        public int $id,
+        public int $departmentId,
     ) {
     }
 
@@ -35,7 +35,7 @@ class User implements AuthenticatableContract, JsonSerializable
     /**
      * Get the unique identifier for the user.
      *
-     * @return mixed
+     * @return int
      */
     public function getAuthIdentifier()
     {

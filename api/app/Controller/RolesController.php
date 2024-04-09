@@ -13,7 +13,6 @@ class RolesController
 {
     /**
      * コンストラクタ
-     *
      */
     public function __construct(
         private Request $request,

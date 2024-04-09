@@ -37,11 +37,41 @@ class Query
             ])
             ->exSearch($option);
 
-        $results['data'] = array_map(function ($row) {
-            return $this->convert($row);
-        }, $results['data']);
-
         return $results;
+    }
+
+    /**
+     * 1件取得する
+     * 
+     * @param int $id
+     * @return object
+     */
+    public function get(int $id): object
+    {
+        $order = DB::table('orders')
+            ->where('id', $id)
+            ->first([
+                'title',
+                'body',
+                'approval_status',
+                'updated_at',
+            ]);
+
+        if ($order === null) {
+            throw new CustomException('record_not_found');
+        }
+
+        $order->approval_flows = DB::table('order_approval_flows')
+            ->where('order_id', $id)
+            ->orderBy('sequence_no')
+            ->get([
+                'sequence_no',
+                'approval_user_id',
+                'approval_status',
+                'approval_date',
+            ]);
+
+        return $order;
     }
 
     /**
@@ -83,12 +113,12 @@ class Query
                     'approval_status',
                     'updated_at'
                 ],
-                Edit::class => ['id', 'approval_status', 'updated_at'],
-                Apply::class => ['id', 'approval_status', 'updated_at'],
-                Approve::class => ['id', 'approval_status', 'updated_at'],
-                Reject::class => ['id', 'approval_status', 'updated_at'],
-                Cancel::class => ['id', 'updated_at'],
-                Delete::class => ['id', 'updated_at'],
+                'edit' => ['id', 'approval_status', 'updated_at'],
+                'apply' => ['id', 'approval_status', 'updated_at'],
+                'approve' => ['id', 'approval_status', 'updated_at'],
+                'reject' => ['id', 'approval_status', 'updated_at'],
+                'cancel' => ['id', 'updated_at'],
+                'delete' => ['id', 'updated_at'],
             });
 
         // レコードが存在しなければエラーとする
@@ -103,22 +133,22 @@ class Query
 
         // 承認フローを必要とするcontextなら承認フローを取得する
         $approvalFlowEntitites = null;
-        if (in_array($context, [OrderCollection::class ,Apply::class, Approve::class, Reject::class])) {
+        if (in_array($context, [OrderCollection::class, 'apply', 'approve', 'reject'])) {
             $approvalFlowEntitites = $this->getApprovalFlowEntities($id);
         }
 
         return new Order($this->convert($dto, $approvalFlowEntitites));
     }
-    
+
     /**
      * 承認フローエンティティを取得する
      *
      * @param int $id 取引ID
      * @return array<ApprovalFlow>
      */
-    private function getApprovalFlowEntities(int $id):array
+    private function getApprovalFlowEntities(int $id): array
     {
-        $approvalFlowEntitites = $this->getApprovalFlow($id)->map(function($dto) {
+        $approvalFlowEntitites = $this->getApprovalFlow($id)->map(function ($dto) {
             return new ApprovalFlow([
                 'sequenceNo' => $dto->sequence_no,
                 'approvalUserId' => $dto->approval_user_id,
@@ -126,7 +156,7 @@ class Query
                 'approvalStatus' => $dto->approval_status,
             ]);
         });
-        
+
         return $approvalFlowEntitites->toArray();
     }
 

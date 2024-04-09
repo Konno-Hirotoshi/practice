@@ -3,13 +3,7 @@
 namespace App\Controller;
 
 use App\Domain\Orders\OrderCollection;
-use App\Domain\Orders\UseCase\Apply;
-use App\Domain\Orders\UseCase\Approve;
-use App\Domain\Orders\UseCase\Cancel;
-use App\Domain\Orders\UseCase\Create;
-use App\Domain\Orders\UseCase\Delete;
-use App\Domain\Orders\UseCase\Edit;
-use App\Domain\Orders\UseCase\Reject;
+use App\Domain\Orders\OrderUseCase;
 use Illuminate\Http\Request;
 
 /**
@@ -23,6 +17,7 @@ class OrdersController
     public function __construct(
         private Request $request,
         private OrderCollection $orderCollection,
+        private OrderUseCase $useCase,
     ) {
     }
 
@@ -56,16 +51,16 @@ class OrdersController
         // (NOP)
 
         // 02. Invoke Use Case
-        $order = $this->orderCollection->get($id);
+        $result = $this->orderCollection->get($id);
 
         // 03. Return Response
-        return (array)$order;
+        return $result;
     }
 
     /**
      * 新規作成
      */
-    public function create(Create $useCase)
+    public function create()
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -74,7 +69,7 @@ class OrdersController
         ]);
 
         // 02. Invoke Use Case
-        $orderId = $useCase->invoke($inputData);
+        $orderId = $this->useCase->create($inputData);
 
         // 03. Return Response
         return ['id' => $orderId];
@@ -83,7 +78,7 @@ class OrdersController
     /**
      * 編集
      */
-    public function edit(int $id, Edit $useCase)
+    public function edit(int $id)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -93,7 +88,7 @@ class OrdersController
         ]);
 
         // 02. Invoke Use Case
-        $useCase->invoke($id, $inputData);
+        $this->useCase->edit($id, $inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -102,7 +97,7 @@ class OrdersController
     /**
      * 承認フロー: 開始
      */
-    public function apply(int $id, Apply $useCase)
+    public function apply(int $id)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -110,7 +105,7 @@ class OrdersController
         ]);
 
         // 02. Invoke Use Case
-        $useCase->invoke($id, ...$inputData);
+        $this->useCase->apply($id, ...$inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -119,7 +114,7 @@ class OrdersController
     /**
      * 承認フロー: 承認
      */
-    public function approve(int $id, Approve $useCase)
+    public function approve(int $id)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -130,7 +125,7 @@ class OrdersController
         ];
 
         // 02. Invoke Use Case
-        $useCase->invoke($id, ...$inputData);
+        $this->useCase->approve($id, ...$inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -139,7 +134,7 @@ class OrdersController
     /**
      * 承認フロー: 却下
      */
-    public function reject(int $id, Reject $useCase)
+    public function reject(int $id)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -150,7 +145,7 @@ class OrdersController
         ];
 
         // 02. Invoke Use Case
-        $useCase->invoke($id, ...$inputData);
+        $this->useCase->reject($id, ...$inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -159,7 +154,7 @@ class OrdersController
     /**
      * 承認フロー: 取消
      */
-    public function cancel(int $id, Cancel $useCase)
+    public function cancel(int $id)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -167,7 +162,7 @@ class OrdersController
         ]);
 
         // 02. Invoke Use Case
-        $useCase->invoke($id, ...$inputData);
+        $this->useCase->cancel($id, ...$inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -176,13 +171,13 @@ class OrdersController
     /**
      * 削除
      */
-    public function delete(int $id, Delete $useCase)
+    public function delete(int $id)
     {
         // 01. Validate Request
         // (NOP)
 
         // 02. Invoke Use Case
-        $useCase->invoke($id);
+        $this->useCase->delete($id);
 
         // 03. Return Response
         return ['succeed' => true];

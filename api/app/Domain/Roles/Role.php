@@ -30,7 +30,7 @@ readonly class Role
      *
      * @param array $inputData 入力パラメータ
      */
-    public function __construct($inputData)
+    public function __construct(array $inputData)
     {
         foreach ($inputData as $key => $value) {
             $this->{$key} = $value;

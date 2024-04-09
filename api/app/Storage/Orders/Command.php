@@ -4,13 +4,6 @@ namespace App\Storage\Orders;
 
 use App\Base\CustomException;
 use App\Domain\Orders\Order;
-use App\Domain\Orders\UseCase\Create;
-use App\Domain\Orders\UseCase\Edit;
-use App\Domain\Orders\UseCase\Apply;
-use App\Domain\Orders\UseCase\Approve;
-use App\Domain\Orders\UseCase\Reject;
-use App\Domain\Orders\UseCase\Cancel;
-use App\Domain\Orders\UseCase\Delete;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
@@ -25,13 +18,13 @@ class Command extends Query
     public function save(Order $order, string $context)
     {
         return match ($context) {
-            Create::class => $this->create($order),
-            Edit::class => $this->edit($order),
-            Apply::class => $this->apply($order),
-            Approve::class => $this->updateApprovalFlow($order),
-            Reject::class => $this->updateApprovalFlow($order),
-            Cancel::class => $this->updateApprovalFlow($order),
-            Delete::class => $this->delete($order),
+            'create' => $this->create($order),
+            'edit' => $this->edit($order),
+            'apply' => $this->apply($order),
+            'approve' => $this->updateApprovalFlow($order),
+            'reject' => $this->updateApprovalFlow($order),
+            'cancel' => $this->updateApprovalFlow($order),
+            'delete' => $this->delete($order),
         };
     }
 

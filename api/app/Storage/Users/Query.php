@@ -126,9 +126,9 @@ class Query
         $dto = DB::table('roles')
             ->where('id', $id)
             ->first(match ($context) {
-                Edit::class => ['id', 'updated_at'],
-                EditPassword::class => ['id', 'password', 'updated_at'],
-                Delete::class => ['id', 'updated_at'],
+                'edit' => ['id', 'updated_at'],
+                'editPassword' => ['id', 'password', 'updated_at'],
+                'delete' => ['id', 'updated_at'],
             });
 
         // レコードが存在しなければエラーとする

@@ -5,8 +5,7 @@ namespace App\Storage\Roles;
 use App\Base\CustomException;
 use App\Base\SearchOption;
 use App\Domain\Roles\Role;
-use App\Domain\Roles\UseCase\Delete;
-use App\Domain\Roles\UseCase\Edit;
+use App\Domain\Roles\RoleUseCase;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -96,8 +95,8 @@ class Query
         $dto = DB::table('roles')
             ->where('id', $id)
             ->first(match ($context) {
-                Edit::class => ['id', 'name', 'note', 'updated_at'],
-                Delete::class => ['id', 'updated_at'],
+                RoleUseCase::class . '::edit' => ['id', 'name', 'note', 'updated_at'],
+                'delete' => ['id', 'updated_at'],
             });
 
         // レコードが存在しなければエラーとする

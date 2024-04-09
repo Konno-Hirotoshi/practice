@@ -3,11 +3,7 @@
 namespace App\Controller;
 
 use App\Domain\Users\UserCollection;
-use App\Domain\Users\UseCase\Create;
-use App\Domain\Users\UseCase\Delete;
-use App\Domain\Users\UseCase\Edit;
-use App\Domain\Users\UseCase\EditPassword;
-use App\Storage\Users\Command;
+use App\Domain\Users\UserUseCase;
 use Illuminate\Http\Request;
 
 /**
@@ -21,7 +17,7 @@ class UsersController
     public function __construct(
         private Request $request,
         private UserCollection $userCollection,
-        private Command $users,
+        private UserUseCase $useCase,
     ) {
     }
 
@@ -64,7 +60,7 @@ class UsersController
     /**
      * 新規作成
      */
-    public function create(Create $useCase)
+    public function create()
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -88,7 +84,7 @@ class UsersController
         ];
 
         // 02. Invoke Use Case
-        $userId = $useCase->invoke($inputData);
+        $userId = $this->useCase->create($inputData);
 
         // 03. Return Response
         return ['id' => $userId];
@@ -97,7 +93,7 @@ class UsersController
     /**
      * 編集
      */
-    public function edit(int $id, Edit $useCase)
+    public function edit(int $id)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -118,7 +114,7 @@ class UsersController
         ]);
 
         // 02. Invoke Use Case
-        $useCase->invoke($id, $inputData);
+        $this->useCase->edit($id, $inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -127,7 +123,7 @@ class UsersController
     /**
      * パスワード編集
      */
-    public function editPassword(int $id, EditPassword $useCase)
+    public function editPassword(int $id)
     {
         // 01. Validate Request
         $inputData = $this->request->validate([
@@ -142,7 +138,7 @@ class UsersController
         ]);
 
         // 02. Invoke Use Case
-        $useCase->invoke(
+        $this->useCase->editPassword(
             $id,
             ...$inputData,
             ...$additionalData,
@@ -155,13 +151,13 @@ class UsersController
     /**
      * 削除
      */
-    public function delete(int $id, Delete $useCase)
+    public function delete(int $id)
     {
         // 01. Validate Request
-        $inputData = ['id' => $id];
+        // (NOP)
 
         // 02. Invoke Use Case
-        $useCase->invoke($id);
+        $this->useCase->delete($id);
 
         // 03. Return Response
         return ['succeed' => true];

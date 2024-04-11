@@ -6,7 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Auth\Authenticatable;
 use JsonSerializable;
 
-readonly class User implements AuthenticatableContract, JsonSerializable
+class User implements AuthenticatableContract, JsonSerializable
 {
     use Authenticatable;
 
@@ -17,8 +17,8 @@ readonly class User implements AuthenticatableContract, JsonSerializable
      * @param int $departmentId
      */
     public function __construct(
-        public int $id,
-        public int $departmentId,
+        readonly public int $id,
+        readonly public int $departmentId,
     ) {
     }
 

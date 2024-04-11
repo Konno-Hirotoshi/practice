@@ -20,6 +20,7 @@ class CustomException extends ValidationException
     public function __construct(array|string $body)
     {
         $this->body = is_array($body) ? $body : ['reason' => $body];
+        $this->message = json_encode($this->body);
     }
 
     /**
@@ -30,5 +31,10 @@ class CustomException extends ValidationException
     public function errors()
     {
         return $this->body;
+    }
+
+    public function __toString()
+    {
+        return $this->message;
     }
 }

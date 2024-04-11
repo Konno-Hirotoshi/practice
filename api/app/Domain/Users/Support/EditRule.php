@@ -38,6 +38,8 @@ class EditRule extends BaseValidator
         $this->validateEmail($user);
         $this->validateDepartmentId($user);
         $this->validateRoleId($user);
+        $this->validatePassword($user);
+        $this->validateNote($user);
         $this->throwIfErrors();
     }
 
@@ -98,10 +100,36 @@ class EditRule extends BaseValidator
         if (!isset($user->roleId)) {
             return;
         }
-        
+
         // 役割IDが存在するか
         if (!$this->roles->exists($user->roleId)) {
             $this->setError('roleId', 'not_found');
+        }
+    }
+
+    /**
+     * バリデーション：パスワード
+     *
+     * @param User $user 利用者エンティティ
+     */
+    private function validatePassword(User $user)
+    {
+        // パスワードがセットされているか
+        if (!isset($user->password)) {
+            return;
+        }
+    }
+
+    /**
+     * バリデーション：備考
+     *
+     * @param User $user 利用者エンティティ
+     */
+    private function validateNote(User $user)
+    {
+        // 備考がセットされているか
+        if (!isset($user->note)) {
+            return;
         }
     }
 }

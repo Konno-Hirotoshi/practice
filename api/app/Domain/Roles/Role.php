@@ -5,7 +5,7 @@ namespace App\Domain\Roles;
 use App\Base\CustomException;
 
 /**
- * 役割
+ * 役割 - エンティティ
  */
 readonly class Role
 {

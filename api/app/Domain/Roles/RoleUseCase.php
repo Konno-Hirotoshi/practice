@@ -34,7 +34,10 @@ class RoleUseCase extends BaseUseCase
      */
     public function create(array $inputData)
     {
-        $role = new Role($inputData);
+        $role = new Role($inputData + [
+            // 備考 デフォルト値
+            'note' => '',
+        ]);
 
         // 同名称の役割が存在するか
         $existsDepartmentId = $this->roles->existsName($role->name);

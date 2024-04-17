@@ -71,10 +71,7 @@ class RolesController
             // 選択された権限のリスト
             'permissionIds' => ['array'],
             'permissionIds.*' => ['integer'],
-        ]) + [
-            // 備考 デフォルト値
-            'note' => '',
-        ];
+        ]);
 
         // 02. Invoke Use Case
         $roleId = $this->useCase->create($inputData);
@@ -99,9 +96,7 @@ class RolesController
             'permissionIds.*' => ['integer'],
             // 最終更新日時
             'updatedAt' => ['string', 'min:19', 'max:19'],
-        ]) + [
-            'id' => $id,
-        ];
+        ]);
 
         // 02. Invoke Use Case
         $this->useCase->edit($id, $inputData);

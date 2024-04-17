@@ -6,7 +6,7 @@ use App\Base\BaseValidator;
 use App\Domain\Users\User;
 use App\Storage\Departments\Query as Departments;
 use App\Storage\Roles\Query as Roles;
-use App\Storage\Users\Command as Users;
+use App\Storage\Users\Query as Users;
 
 /**
  * 利用者 - 編集時ビジネスルール
@@ -34,26 +34,10 @@ class EditRule extends BaseValidator
      */
     public function validate(User $user)
     {
-        $this->validateFullName($user);
         $this->validateEmail($user);
         $this->validateDepartmentId($user);
         $this->validateRoleId($user);
-        $this->validatePassword($user);
-        $this->validateNote($user);
         $this->throwIfErrors();
-    }
-
-    /**
-     * バリデーション：氏名
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateFullName(User $user)
-    {
-        // 氏名がセットされているか
-        if (!isset($user->fullName)) {
-            return;
-        }
     }
 
     /**
@@ -104,32 +88,6 @@ class EditRule extends BaseValidator
         // 役割IDが存在するか
         if (!$this->roles->exists($user->roleId)) {
             $this->setError('roleId', 'not_found');
-        }
-    }
-
-    /**
-     * バリデーション：パスワード
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validatePassword(User $user)
-    {
-        // パスワードがセットされているか
-        if (!isset($user->password)) {
-            return;
-        }
-    }
-
-    /**
-     * バリデーション：備考
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateNote(User $user)
-    {
-        // 備考がセットされているか
-        if (!isset($user->note)) {
-            return;
         }
     }
 }

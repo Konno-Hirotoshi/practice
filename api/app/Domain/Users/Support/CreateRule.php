@@ -6,7 +6,7 @@ use App\Base\BaseValidator;
 use App\Domain\Users\User;
 use App\Storage\Departments\Query as Departments;
 use App\Storage\Roles\Query as Roles;
-use App\Storage\Users\Command as Users;
+use App\Storage\Users\Query as Users;
 
 /**
  * 利用者 - 新規作成時ビジネスルール
@@ -34,26 +34,10 @@ class CreateRule extends BaseValidator
      */
     public function validate(User $user)
     {
-        $this->validateFullName($user);
         $this->validateEmail($user);
         $this->validateDepartmentId($user);
         $this->validateRoleId($user);
-        $this->validatePassword($user);
-        $this->validateNote($user);
         $this->throwIfErrors();
-    }
-
-    /**
-     * バリデーション：氏名
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateFullName(User $user)
-    {
-        // 氏名がセットされているか
-        if (!isset($user->fullName)) {
-            return $this->setError('fullName', 'unset');
-        }
     }
 
     /**
@@ -63,11 +47,6 @@ class CreateRule extends BaseValidator
      */
     private function validateEmail(User $user)
     {
-        // メールアドレスがセットされているか
-        if (!isset($user->email)) {
-            return $this->setError('email', 'unset');
-        }
-
         // 同じメールアドレスが使用されていないか
     }
 
@@ -78,11 +57,6 @@ class CreateRule extends BaseValidator
      */
     private function validateDepartmentId(User $user)
     {
-        // 役割IDがセットされているか
-        if (!isset($user->departmentId)) {
-            return $this->setError('departmentId', 'unset');
-        }
-
         // 部署IDが存在するか
         if (!$this->departments->exists($user->departmentId)) {
             $this->setError('departmentId', 'not_found');
@@ -96,40 +70,9 @@ class CreateRule extends BaseValidator
      */
     private function validateRoleId(User $user)
     {
-        // 役割IDがセットされているか
-        if (!isset($user->roleId)) {
-            return $this->setError('roleId', 'unset');
-        }
-        
         // 役割IDが存在するか
         if (!$this->roles->exists($user->roleId)) {
             $this->setError('roleId', 'not_found');
-        }
-    }
-
-    /**
-     * バリデーション：パスワード
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validatePassword(User $user)
-    {
-        // パスワードがセットされているか
-        if (!isset($user->password)) {
-            return $this->setError('password', 'unset');
-        }
-    }
-
-    /**
-     * バリデーション：備考
-     *
-     * @param User $user 利用者エンティティ
-     */
-    private function validateNote(User $user)
-    {
-        // 備考がセットされているか
-        if (!isset($user->note)) {
-            return $this->setError('note', 'unset');
         }
     }
 }

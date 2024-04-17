@@ -5,7 +5,7 @@ namespace App\Domain\Orders;
 use App\Base\CustomException;
 
 /**
- * 取引
+ * 取引 - エンティティ
  */
 readonly class Order
 {

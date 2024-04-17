@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Domain\Users\Dto\CreateDto;
+use App\Domain\Users\Dto\EditDto;
 use App\Domain\Users\UserCollection;
 use App\Domain\Users\UserUseCase;
 use Illuminate\Http\Request;
@@ -76,15 +78,10 @@ class UsersController
             'password' => ['required', 'min:8', 'max:100'],
             // 備考
             'note' => ['string', 'max:200'],
-        ]) + [
-            // パスワード デフォルト値
-            'password' => 'Default@1234',
-            // 備考 デフォルト値
-            'note' => '',
-        ];
+        ]);
 
         // 02. Invoke Use Case
-        $userId = $this->useCase->create($inputData);
+        $userId = $this->useCase->create(new CreateDto(...$inputData));
 
         // 03. Return Response
         return ['id' => $userId];
@@ -109,12 +106,15 @@ class UsersController
             'password' => ['filled', 'min:8', 'max:100'],
             // 備考
             'note' => ['string', 'max:200'],
+        ]);
+        $additionalData = $this->request->validate([
             // 最終更新日時
             'updatedAt' => ['string', 'min:19', 'max:19'],
         ]);
 
         // 02. Invoke Use Case
-        $this->useCase->edit($id, $inputData);
+        $this->useCase->target($id, ...$additionalData);
+        $this->useCase->edit(new EditDto(...$inputData));
 
         // 03. Return Response
         return ['succeed' => true];
@@ -129,20 +129,17 @@ class UsersController
         $inputData = $this->request->validate([
             // パスワード
             'password' => ['required', 'min:8', 'max:100'],
-        ]);
-        $additionalData = $this->request->validate([
             // 現在のパスワード
             'currentPssword' => ['required', 'min:8', 'max:100'],
-            // 新しいパスワード（再入力）
-            'retypePassword' => ['required', 'min:8', 'max:100'],
+        ]);
+        $additionalData = $this->request->validate([
+            // 最終更新日時
+            'updatedAt' => ['string', 'min:19', 'max:19'],
         ]);
 
         // 02. Invoke Use Case
-        $this->useCase->editPassword(
-            $id,
-            ...$inputData,
-            ...$additionalData,
-        );
+        $this->useCase->target($id, ...$additionalData);
+        $this->useCase->editPassword(...$inputData);
 
         // 03. Return Response
         return ['succeed' => true];
@@ -157,7 +154,7 @@ class UsersController
         // (NOP)
 
         // 02. Invoke Use Case
-        $this->useCase->delete($id);
+        $this->useCase->target($id)->delete();
 
         // 03. Return Response
         return ['succeed' => true];

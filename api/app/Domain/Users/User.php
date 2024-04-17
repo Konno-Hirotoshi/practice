@@ -3,9 +3,11 @@
 namespace App\Domain\Users;
 
 use App\Base\CustomException;
+use App\Domain\Users\Dto\CreateDto;
+use App\Domain\Users\Dto\EditDto;
 
 /**
- * 利用者
+ * 利用者 - エンティティ
  */
 readonly class User
 {
@@ -50,30 +52,62 @@ readonly class User
     }
 
     /**
-     * 編集
+     * 新規作成
+     *
+     * @param CreateDto $dto 入力パラメータ
+     * @return self
      */
-    public function edit(array $inputData)
+    public static function create(CreateDto $dto)
     {
-        return new User(['id' => $this->id] + $inputData);
+        return new self($dto->getData());
+    }
+
+    /**
+     * 編集
+     *
+     * @param EditDto $dto 入力パラメータ
+     * @return self
+     */
+    public function edit(EditDto $dto)
+    {
+        return $this->newInstance($dto->getData());
     }
 
     /**
      * パスワード編集
+     *
+     * @param string $password 新しいパスワード
+     * @return self
      */
     public function editPassword(string $password)
     {
-        return new User([
-            'id' => $this->id,
+        return $this->newInstance([
             'password' => $password,
         ]);
     }
 
     /**
      * 削除
+     *
+     * @return self
      */
     public function delete()
     {
         return $this;
+    }
+
+    /**
+     * 新しいインスタンスを作成する
+     *
+     * @param array $inputData 入力パラメータ
+     * @return self
+     */
+    private function newInstance(array $inputData): self
+    {
+        return new self([
+            'id' => $this->id,
+            'updatedAt' => $this->updatedAt ?? null,
+        ] + $inputData);
     }
 
     /**

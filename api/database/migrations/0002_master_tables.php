@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -14,6 +15,7 @@ return new class extends Migration
             `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`id`)
         );
+        
         CREATE TABLE `users` (
             `id` INT NOT NULL AUTO_INCREMENT,
             `full_name` VARCHAR(60) NOT NULL,
@@ -39,6 +41,26 @@ return new class extends Migration
     public function up(): void
     {
         DB::statement($this->up);
+
+        // 初期データ投入 (ローカル環境のみ)
+        if (App::isLocal()) {
+            // 部門
+            DB::table('departments')->insert([
+                'id' => 1,
+                'full_name' => 'Information System Dept.',
+                'path' => '1',
+            ]);
+            // 利用者
+            DB::table('users')->insert([
+                'id' => 1,
+                'full_name' => 'user 01',
+                'email' => 'test',
+                'department_id' => 1,
+                'role_id' => 1,
+                'password' => '$2y$10$MkemFTIGcy5S8v5sljgLOeVtTZEK4i.2uzfBGbVyImHDQoFQmjYIG',
+                'note' => '',
+            ]);
+        }
     }
 
     /**

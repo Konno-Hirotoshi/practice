@@ -18,13 +18,17 @@ abstract class BaseUseCase
 
     protected function throw()
     {
-        throw new CustomException($this->validationErrors);
+        $e = $this->validationErrors;
+        $this->validationErrors = [];
+        throw new CustomException($e);
     }
 
-    protected function throwIfErrors()
+    public function throwIfErrors()
     {
         if ($this->validationErrors) {
-            throw new CustomException($this->validationErrors);
+            $e = $this->validationErrors;
+            $this->validationErrors = [];
+            throw new CustomException($e);
         }
     }
 }

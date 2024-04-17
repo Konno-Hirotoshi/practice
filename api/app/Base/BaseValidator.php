@@ -18,13 +18,17 @@ abstract class BaseValidator
 
     protected function throw()
     {
-        throw new CustomException($this->validationErrors);
+        $e = $this->validationErrors;
+        $this->validationErrors = [];
+        throw new CustomException($e);
     }
 
     public function throwIfErrors()
     {
         if ($this->validationErrors) {
-            throw new CustomException($this->validationErrors);
+            $e = $this->validationErrors;
+            $this->validationErrors = [];
+            throw new CustomException($e);
         }
     }
 }

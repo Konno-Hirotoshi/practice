@@ -2,51 +2,54 @@
 
 namespace App\Console;
 
+use App\Base\BaseCommand;
 use App\Base\CustomException;
+use App\Domain\Users\Dto\CreateDto;
 use App\Domain\Users\UserUseCase;
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 /**
  * 利用者インポートバッチ
  */
-class ImportUsers extends Command
+class ImportUsers extends BaseCommand
 {
-    /** シグネチャ */
+    /**
+     * シグネチャ
+     */
     protected $signature = 'import:user {id?}';
 
-    private UserUseCase $useCase;
+    /**
+     * コンストラクタ
+     */
+    public function __construct(private UserUseCase $useCase)
+    {
+        parent::__construct();
+    }
 
     /**
      * メイン処理
      */
-    public function handle(UserUseCase $useCase)
+    protected function main()
     {
-        $this->useCase = $useCase;
-
-        Log::info('start');
-
-        $ids = [$this->argument('id') ?? rand(1000, 9999)];
-
+        $ids = [$this->argument('id') ?? rand(1000, 9999), 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5];
         foreach ($ids as $id) {
             try {
                 $this->do($id);
             } catch (CustomException $e) {
-                Log::error($e);
+                $this->error($e);
             }
         }
-        Log::info('end' . PHP_EOL);
     }
 
     private function do($id)
     {
-        $this->useCase->create([
+        $lastInsertId = $this->useCase->create(new CreateDto(...[
             'fullName' => 'imported user ' . $id,
             'email' => 'user' . $id . '@example.com',
-            'roleId' => 1,
-            'departmentId' => 1,
+            'roleId' => (int)rand(1, 2),
+            'departmentId' => (int)rand(1, 2),
             'password' => 'Aa12345678@',
             'note' => '',
-        ]);
+        ]));
+        $this->info('registered: ' . $lastInsertId);
     }
 }

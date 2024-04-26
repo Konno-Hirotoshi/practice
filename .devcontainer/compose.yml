@@ -1,0 +1,32 @@
+services:
+  devcontainer:
+    build: .
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=laravel
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    ports:
+      - "5173:5173"
+      - "8000:8000"
+    volumes:
+      - ../:/pkg:cached
+      - ./php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+    depends_on:
+      - mysql
+  mysql:
+    build: ./mysql
+    environment:
+      - MYSQL_DATABASE=laravel
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf:cached
+      - ../api/logs:/var/log/mysql:delegated
+      - v-db:/var/lib/mysql
+volumes:
+  v-db:

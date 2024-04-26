@@ -16,8 +16,8 @@ class CreateRule extends BaseValidator
     /**
      * コンストラクタ
      *
-     * @param Users $users 役割
-     * @param Roles $roles 権限
+     * @param Users $users 利用者
+     * @param Roles $roles 役割
      * @param Departments $departments 部署
      */
     public function __construct(

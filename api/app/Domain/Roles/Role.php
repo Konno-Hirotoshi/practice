@@ -3,6 +3,8 @@
 namespace App\Domain\Roles;
 
 use App\Base\CustomException;
+use App\Domain\Roles\Dto\CreateDto;
+use App\Domain\Roles\Dto\EditDto;
 
 /**
  * 役割 - エンティティ
@@ -44,11 +46,19 @@ readonly class Role
     }
 
     /**
+     * 新規作成
+     */
+    public static function create(CreateDto $dto)
+    {
+        return new self($dto->getData());
+    }
+
+    /**
      * 編集
      */
-    public function edit(array $inputData)
+    public function edit(EditDto $dto)
     {
-        return new Role(['id' => $this->id] + $inputData);
+        return $this->newInstance($dto->getData());
     }
 
     /**
@@ -62,6 +72,20 @@ readonly class Role
         }
 
         return $this;
+    }
+
+    /**
+     * 新しいインスタンスを作成する
+     *
+     * @param array $inputData 入力パラメータ
+     * @return self
+     */
+    private function newInstance(array $inputData): self
+    {
+        return new self([
+            'id' => $this->id,
+            'updatedAt' => $this->updatedAt ?? null,
+        ] + $inputData);
     }
 
     /**

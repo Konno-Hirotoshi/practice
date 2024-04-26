@@ -3,6 +3,8 @@
 namespace App\Domain\Roles;
 
 use App\Base\BaseUseCase;
+use App\Domain\Roles\Dto\CreateDto;
+use App\Domain\Roles\Dto\EditDto;
 use App\Storage\Permissions\Query as Permissions;
 use App\Storage\Roles\Command as Roles;
 use App\Storage\Users\Query as Users;
@@ -12,6 +14,12 @@ use App\Storage\Users\Query as Users;
  */
 class RoleUseCase extends BaseUseCase
 {
+    /** 利用者ID */
+    readonly private int $id;
+
+    /** 最終更新日時 */
+    readonly private ?string $updatedAt;
+
     /**
      * コンストラクタ
      *
@@ -27,17 +35,28 @@ class RoleUseCase extends BaseUseCase
     }
 
     /**
+     * 対象を指定する
+     *
+     * @param int $id 利用者ID
+     * @param ?string $updatedAt 最終更新日時
+     * @return self
+     */
+    public function target(int $id, ?string $updatedAt = null): self
+    {
+        $this->id = $id;
+        $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    /**
      * 新規作成
      *
-     * @param array $inputData 入力データ
+     * @param CreateDto $dto 入力データ
      * @return int
      */
-    public function create(array $inputData)
+    public function create(CreateDto $dto): int
     {
-        $role = new Role($inputData + [
-            // 備考 デフォルト値
-            'note' => '',
-        ]);
+        $role = Role::create($dto);
 
         // 同名称の役割が存在するか
         $existsDepartmentId = $this->roles->existsName($role->name);
@@ -53,24 +72,20 @@ class RoleUseCase extends BaseUseCase
 
         $this->throwIfErrors();
 
-        return $this->roles->save(
-            role: $role,
-            context: __METHOD__,
-        );
+        return $this->roles->save($role, context: __METHOD__);
     }
 
     /**
      * 編集
      *
-     * @param int $id 役割ID
-     * @param array $inputData 入力パラメータ
+     * @param EditDto $dto 入力データ
      * @return void
      */
-    public function edit($id, array $inputData): void
+    public function edit(EditDto $dto): void
     {
         $role = $this->roles
-            ->getEntity($id, $inputData['updated_at'] ?? null, context: __METHOD__)
-            ->edit($inputData);
+            ->getEntity($this->id, $this->updatedAt, context: __METHOD__)
+            ->edit($dto);
 
         if (isset($role->name)) {
             // 同名称の役割が存在するか
@@ -88,21 +103,19 @@ class RoleUseCase extends BaseUseCase
             }
         }
         $this->throwIfErrors();
-        
+
         $this->roles->save($role, context: __METHOD__);
     }
 
     /**
      * 削除
      *
-     * @param int $id 役割ID
-     * @param string $updatedAt 最終更新日時
      * @return void
      */
-    public function delete(int $id, $updatedAt = null)
+    public function delete(): void
     {
         $role = $this->roles
-            ->getEntity($id, $updatedAt, context: __METHOD__)
+            ->getEntity($this->id, $this->updatedAt, context: __METHOD__)
             ->delete();
 
         // 権限が利用者に割り当てられているか

@@ -8,13 +8,13 @@ namespace App\Domain\Users\Dto;
 readonly class EditDto
 {
     /**
-     * @param string $fullName フルネーム
-     * @param string $email メールアドレス
-     * @param int $departmentId 部署ID
-     * @param int $roleId 役割ID
-     * @param string $password パスワード
-     * @param string $note 備考
-     * @param string 最終更新日時
+     * @param ?string $fullName フルネーム
+     * @param ?string $email メールアドレス
+     * @param ?int $departmentId 部署ID
+     * @param ?int $roleId 役割ID
+     * @param ?string $password パスワード
+     * @param ?string $note 備考
+     * @param ?string 最終更新日時
      */
     public function __construct(
         public ?string $fullName = null,

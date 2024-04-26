@@ -1,16 +1,16 @@
 {
-    "name": "api",
+    "name": "laravel-app",
     "dockerComposeFile": [
-        "../../docker-compose.yml"
+        "./compose.yml"
     ],
-    "service": "api",
+    "service": "devcontainer",
     "shutdownAction": "none",
-    "workspaceFolder": "/pkg/api",
+    "workspaceFolder": "/pkg",
     "customizations": {
         "vscode": {
             "settings": {
                 "workbench.colorCustomizations": {
-                    "titleBar.activeBackground": "#c83d25"
+                    "titleBar.activeBackground": "#b03025"
                 },
                 "editor.formatOnSave": true,
                 "php.suggest.basic": false,

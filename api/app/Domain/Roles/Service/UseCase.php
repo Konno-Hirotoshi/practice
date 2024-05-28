@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Domain\Roles;
+namespace App\Domain\Roles\Service;
 
 use App\Base\BaseUseCase;
 use App\Domain\Roles\Dto\CreateDto;
 use App\Domain\Roles\Dto\EditDto;
+use App\Domain\Roles\Role;
 use App\Storage\Permissions\Query as Permissions;
 use App\Storage\Roles\Command as Roles;
 use App\Storage\Users\Query as Users;
@@ -12,32 +13,30 @@ use App\Storage\Users\Query as Users;
 /**
  * 役割 - ユースケースクラス
  */
-class RoleUseCase extends BaseUseCase
+class UseCase extends BaseUseCase
 {
-    /** 利用者ID */
-    readonly private int $id;
-
-    /** 最終更新日時 */
-    readonly private ?string $updatedAt;
-
     /**
      * コンストラクタ
      *
      * @param Roles $roles 役割
      * @param Permissions $permissions 権限
      * @param Users $users 利用者
+     * @param ?int $id 役割ID
+     * @param ?string $updatedAt 最終更新日時
      */
     public function __construct(
         private Roles $roles,
         private Permissions $permissions,
         private Users $users,
+        private ?int $id = null,
+        private ?string $updatedAt = null,
     ) {
     }
 
     /**
      * 対象を指定する
      *
-     * @param int $id 利用者ID
+     * @param int $id 役割ID
      * @param ?string $updatedAt 最終更新日時
      * @return self
      */
@@ -118,9 +117,9 @@ class RoleUseCase extends BaseUseCase
             ->getEntity($this->id, $this->updatedAt, context: __METHOD__)
             ->delete();
 
-        // 権限が利用者に割り当てられているか
+        // 役割が利用者に割り当てられているか
         if ($this->isAssignToUsers($role->id)) {
-            $this->throw('role_assigned');
+            $this->setError('role_assign')->throw();
         }
 
         $this->roles->save($role, context: __METHOD__);

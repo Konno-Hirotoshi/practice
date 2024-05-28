@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
-use App\Domain\Roles\RoleCollection;
-use App\Domain\Roles\RoleUseCase;
+use App\Domain\Roles\Dto\CreateDto;
+use App\Domain\Roles\Dto\EditDto;
+use App\Domain\Roles\Service\Collection;
+use App\Domain\Roles\Service\UseCase;
 use Illuminate\Http\Request;
 
 /**
@@ -16,8 +18,8 @@ class RolesController
      */
     public function __construct(
         private Request $request,
-        private RoleCollection $roleCollection,
-        private RoleUseCase $useCase,
+        private Collection $collection,
+        private UseCase $useCase,
     ) {
     }
 
@@ -36,10 +38,10 @@ class RolesController
         ]);
 
         // 02. Invoke Use Case
-        $roles = $this->roleCollection->search($inputData);
+        $results = $this->collection->search($inputData);
 
         // 03. Return Response
-        return $roles;
+        return $results;
     }
 
     /**
@@ -51,10 +53,10 @@ class RolesController
         // (NOP)
 
         // 02. Invoke Use Case
-        $role = $this->roleCollection->get($id);
+        $result = $this->collection->get($id);
 
         // 03. Return Response
-        return $role;
+        return $result;
     }
 
     /**
@@ -74,7 +76,7 @@ class RolesController
         ]);
 
         // 02. Invoke Use Case
-        $roleId = $this->useCase->create($inputData);
+        $roleId = $this->useCase->create(new CreateDto(...$inputData));
 
         // 03. Return Response
         return ['id' => $roleId];
@@ -94,12 +96,17 @@ class RolesController
             // 選択された権限のリスト
             'permissionIds' => ['array'],
             'permissionIds.*' => ['integer'],
+        ]);
+        $additionalData = $this->request->validate([
             // 最終更新日時
             'updatedAt' => ['string', 'min:19', 'max:19'],
         ]);
 
+
         // 02. Invoke Use Case
-        $this->useCase->edit($id, $inputData);
+        $this->useCase
+            ->target($id, ...$additionalData)
+            ->edit(new EditDto(...$inputData));
 
         // 03. Return Response
         return ['succeed' => true];
@@ -114,7 +121,7 @@ class RolesController
         // (NOP)
 
         // 02. Invoke Use Case
-        $this->useCase->delete($id);
+        $this->useCase->target($id)->delete();
 
         // 03. Return Response
         return ['succeed' => true];

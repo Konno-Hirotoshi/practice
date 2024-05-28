@@ -104,10 +104,7 @@ readonly class User
      */
     private function newInstance(array $inputData): self
     {
-        return new self([
-            'id' => $this->id,
-            'updatedAt' => $this->updatedAt ?? null,
-        ] + $inputData);
+        return new self((array)$this + $inputData);
     }
 
     /**

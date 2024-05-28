@@ -26,9 +26,7 @@ abstract class BaseUseCase
     public function throwIfErrors()
     {
         if ($this->validationErrors) {
-            $e = $this->validationErrors;
-            $this->validationErrors = [];
-            throw new CustomException($e);
+            $this->throw();
         }
     }
 }

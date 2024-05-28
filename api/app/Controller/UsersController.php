@@ -4,8 +4,8 @@ namespace App\Controller;
 
 use App\Domain\Users\Dto\CreateDto;
 use App\Domain\Users\Dto\EditDto;
-use App\Domain\Users\UserCollection;
-use App\Domain\Users\UserUseCase;
+use App\Domain\Users\Service\Collection;
+use App\Domain\Users\Service\UseCase;
 use Illuminate\Http\Request;
 
 /**
@@ -18,8 +18,8 @@ class UsersController
      */
     public function __construct(
         private Request $request,
-        private UserCollection $userCollection,
-        private UserUseCase $useCase,
+        private Collection $collection,
+        private UseCase $useCase,
     ) {
     }
 
@@ -38,10 +38,10 @@ class UsersController
         ]);
 
         // 02. Invoke Use Case
-        $users = $this->userCollection->search(...$inputData);
+        $results = $this->collection->search(...$inputData);
 
         // 03. Return Response
-        return $users;
+        return $results;
     }
 
     /**
@@ -53,10 +53,10 @@ class UsersController
         // (NOP)
 
         // 02. Invoke Use Case
-        $user = $this->userCollection->get($id);
+        $result = $this->collection->get($id);
 
         // 03. Return Response
-        return $user;
+        return $result;
     }
 
     /**
@@ -113,8 +113,9 @@ class UsersController
         ]);
 
         // 02. Invoke Use Case
-        $this->useCase->target($id, ...$additionalData);
-        $this->useCase->edit(new EditDto(...$inputData));
+        $this->useCase
+            ->target($id, ...$additionalData)
+            ->edit(new EditDto(...$inputData));
 
         // 03. Return Response
         return ['succeed' => true];
@@ -138,8 +139,9 @@ class UsersController
         ]);
 
         // 02. Invoke Use Case
-        $this->useCase->target($id, ...$additionalData);
-        $this->useCase->editPassword(...$inputData);
+        $this->useCase
+            ->target($id, ...$additionalData)
+            ->editPassword(...$inputData);
 
         // 03. Return Response
         return ['succeed' => true];

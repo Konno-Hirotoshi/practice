@@ -1,26 +1,21 @@
 <?php
 
-namespace App\Domain\Users;
+namespace App\Domain\Users\Service;
 
 use App\Base\BaseUseCase;
 use App\Domain\Users\Dto\CreateDto;
 use App\Domain\Users\Dto\EditDto;
 use App\Domain\Users\Support\CreateRule;
 use App\Domain\Users\Support\EditRule;
+use App\Domain\Users\User;
 use App\Storage\Users\Command as Users;
 use App\Service\AuthenticationService;
 
 /**
  * 利用者 - ユースケースクラス
  */
-class UserUseCase extends BaseUseCase
+class UseCase extends BaseUseCase
 {
-    /** 利用者ID */
-    readonly private int $id;
-
-    /** 最終更新日時 */
-    readonly private ?string $updatedAt;
-
     /**
      * コンストラクタ
      *
@@ -28,12 +23,16 @@ class UserUseCase extends BaseUseCase
      * @param AuthenticationService $authenticationService 認証サービス
      * @param CreateRule $createRule 新規作成時ビジネスルール
      * @param EditRule $editRule 編集時ビジネスルール
+     * @param ?int $id 利用者ID
+     * @param ?string $updatedAt 最終更新日時
      */
     public function __construct(
         private Users $users,
         private AuthenticationService $authenticationService,
         private CreateRule $createRule,
         private EditRule $editRule,
+        private ?int $id = null,
+        private ?string $updatedAt = null,
     ) {
     }
 

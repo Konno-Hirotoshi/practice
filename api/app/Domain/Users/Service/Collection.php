@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Domain\Roles;
+namespace App\Domain\Users\Service;
 
 use App\Base\SearchOption;
-use App\Storage\Roles\Query as Roles;
+use App\Storage\Users\Query as Users;
 
 /**
- * 役割 - コレクションクラス
+ * 利用者 - コレクションクラス
  */
-class RoleCollection
+class Collection
 {
     /**
      * コンストラクタ
      */
-    public function __construct(private Roles $roles)
+    public function __construct(private Users $users)
     {
     }
 
@@ -30,9 +30,14 @@ class RoleCollection
     {
         $option = SearchOption::create($search, $sort, $page, $perPage, [
             'id' => 'value',
+            'full_name' => 'like',
+            'email' => 'like',
+            'tags' => function ($key, $value, $query) {
+                return $query;
+            },
         ]);
 
-        return $this->roles->search($option);
+        return $this->users->search($option);
     }
 
     /**
@@ -43,6 +48,6 @@ class RoleCollection
      */
     public function get(int $id)
     {
-        return $this->roles->get($id);
+        return $this->users->get($id);
     }
 }

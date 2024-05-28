@@ -3,40 +3,13 @@
 namespace App\Domain\Orders;
 
 use App\Base\CustomException;
+use App\Domain\Orders\Enum\ApprovalStatus;
 
 /**
  * 取引 - エンティティ
  */
 readonly class Order
 {
-    /** 承認ステータス：未承認 */
-    const APPROVAL_STATUS_NONE = 0;
-
-    /** 承認ステータス：承認済み */
-    const APPROVAL_STATUS_APPROVE = 1;
-
-    /** 承認ステータス：却下 */
-    const APPROVAL_STATUS_REJECT = 2;
-
-    /** 承認ステータス：申請中  */
-    const APPROVAL_STATUS_APPLY = 4;
-
-    /** 承認ステータス：申請中 (一次承認済み) */
-    const APPROVAL_STATUS_IN_PROGRESS = 5;
-
-    /** 承認ステータス：取り消し */
-    const APPROVAL_STATUS_CANCEL = 9;
-
-    /** 承認ステータス */
-    const APPROVAL_STATUS = [
-        self::APPROVAL_STATUS_NONE,
-        self::APPROVAL_STATUS_APPROVE,
-        self::APPROVAL_STATUS_REJECT,
-        self::APPROVAL_STATUS_APPLY,
-        self::APPROVAL_STATUS_IN_PROGRESS,
-        self::APPROVAL_STATUS_CANCEL,
-    ];
-
     /** @var int ID */
     public ?int $id;
 
@@ -97,7 +70,7 @@ readonly class Order
         return new Order([
             'id' => $this->id,
             // 承認ステータス：申請中
-            'approvalStatus' => Order::APPROVAL_STATUS_APPLY,
+            'approvalStatus' => ApprovalStatus::APPLY,
             // 承認フロー
             'approvalFlows' => [
                 new ApprovalFlow(['orderId' => $this->id, 'sequenceNo' => 1, 'approvalUserId' => 1, 'approvalStatus' => ApprovalFlow::APPROVAL_STATUS_NONE]),
@@ -171,7 +144,7 @@ readonly class Order
         return new Order([
             'id' => $this->id,
             // 承認ステータス：却下
-            'approvalStatus' => self::APPROVAL_STATUS_REJECT,
+            'approvalStatus' => ApprovalStatus::REJECT,
             // 承認フロー
             'approvalFlows' => [
                 new ApprovalFlow([
@@ -195,7 +168,7 @@ readonly class Order
         return new Order([
             'id' => $this->id,
             // 承認ステータス：取り消し
-            'approvalStatus' => self::APPROVAL_STATUS_CANCEL,
+            'approvalStatus' => ApprovalStatus::CANCEL,
             // 承認フロー
             'approvalFlows' => [],
             // 最終更新日時
@@ -226,7 +199,7 @@ readonly class Order
 
         if (isset($this->approvalStatus)) {
             // 承認ステータスがリストに含まれていること
-            if (!in_array($this->approvalStatus, self::APPROVAL_STATUS)) {
+            if (!in_array($this->approvalStatus, ApprovalStatus::all())) {
                 $validationErrors['sequenceNo'] = 'enum';
             }
         }
@@ -257,9 +230,9 @@ readonly class Order
     public function isEditable()
     {
         return in_array($this->approvalStatus, [
-            self::APPROVAL_STATUS_REJECT,
-            self::APPROVAL_STATUS_NONE,
-            self::APPROVAL_STATUS_CANCEL,
+            ApprovalStatus::REJECT,
+            ApprovalStatus::NONE,
+            ApprovalStatus::CANCEL,
         ]);
     }
 
@@ -269,8 +242,8 @@ readonly class Order
     private function isApprovalFlowInProgress()
     {
         return in_array($this->approvalStatus, [
-            self::APPROVAL_STATUS_APPLY,
-            self::APPROVAL_STATUS_IN_PROGRESS,
+            ApprovalStatus::APPLY,
+            ApprovalStatus::IN_PROGRESS,
         ]);
     }
 
@@ -288,8 +261,8 @@ readonly class Order
     private function getNextApprovalStatus(int $sequenceNo)
     {
         return $this->isFinalSequenceNo($sequenceNo)
-            ? self::APPROVAL_STATUS_APPROVE
-            : self::APPROVAL_STATUS_IN_PROGRESS;
+            ? ApprovalStatus::APPROVE
+            : ApprovalStatus::IN_PROGRESS;
     }
 
     /**

@@ -4,7 +4,7 @@ namespace App\Storage\Users;
 
 use App\Base\CustomException;
 use App\Domain\Users\User;
-use App\Domain\Users\UserUseCase;
+use App\Domain\Users\Service\UseCase as UserUseCase;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 

@@ -5,7 +5,7 @@ namespace App\Console;
 use App\Base\BaseCommand;
 use App\Base\CustomException;
 use App\Domain\Users\Dto\CreateDto;
-use App\Domain\Users\UserUseCase;
+use App\Domain\Users\Service\UseCase as UserUseCase;
 
 /**
  * 利用者インポートバッチ

@@ -5,7 +5,7 @@ namespace App\Storage\Users;
 use App\Base\CustomException;
 use App\Base\SearchOption;
 use App\Domain\Users\User;
-use App\Domain\Users\UserUseCase;
+use App\Domain\Users\Service\UseCase as UserUseCase;
 use Illuminate\Support\Facades\DB;
 
 /**

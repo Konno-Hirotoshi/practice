@@ -39,6 +39,8 @@ $app->singleton(
     App\Base\ExceptionHandler::class
 );
 
+$app->useAppPath('../app/');
+
 /*
 |--------------------------------------------------------------------------
 | Return The Application

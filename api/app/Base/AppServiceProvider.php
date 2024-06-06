@@ -39,7 +39,7 @@ class AppServiceProvider extends BaseServiceProvider
         });
 
         $this->routes(function () {
-            require base_path('bootstrap/routes.php');
+            require base_path('../app/routes.php');
         });
     }
 }

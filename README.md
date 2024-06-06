@@ -48,6 +48,7 @@
 (root)
 ├--.devcontainer - Dev Container, Docker設定 (基本触らない)
 ├--.git - Git設定 (編集禁止)
+├--.vscode - Visual Studio Code 設定 (基本触らない)
 ├--api - バックエンドのソースコード (Laravel)
 |   └-- ...
 ├--web - フロントエンドのソースコード (React)

@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/"
+            "App\\": "../app/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "../tests/"
         }
     },
     "scripts": {
@@ -22,8 +22,8 @@
             "@migrate",
             "@serve"
         ],
-        "test": "phpunit tests/ --colors --testdox --",
-        "testng": "phpunit tests/ --colors=always --testdox | grep -v ✔ --",
+        "test": "phpunit ../tests/ --colors --testdox --",
+        "testng": "phpunit ../tests/ --colors=always --testdox | grep -v ✔ --",
         "migrate": "@php artisan migrate",
         "serve": [
             "Composer\\Config::disableProcessTimeout",

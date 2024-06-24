@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd ./api
+cd ./api/framework
 /usr/local/bin/composer start &
 pid=$!
 cd -

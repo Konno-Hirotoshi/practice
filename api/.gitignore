@@ -1,3 +1,3 @@
 /framework/bootstrap/cache
-/framework/logs/
 /framework/vendor/
+/logs/
